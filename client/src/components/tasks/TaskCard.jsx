@@ -24,6 +24,19 @@ const ICONS = {
   low: <MdKeyboardArrowDown />,
 };
 
+const STATUS_PT_BR = {
+  "TODO": "Para Fazer",
+  "IN PROGRESS": "Em Progresso",
+  "COMPLETED": "Finalizado",
+};
+
+const PRIORITY_PT_BR = {
+  "HIGH": "Alta",
+  "MEDIUM": "Média",
+  "NORMAL": "Normal",
+  "LOW": "Baixa",
+};
+
 const TaskCard = ({ task }) => {
   const { user } = useSelector((state) => state.auth);
   const [open, setOpen] = useState(false);
@@ -39,7 +52,11 @@ const TaskCard = ({ task }) => {
             )}
           >
             <span className='text-lg'>{ICONS[task?.priority]}</span>
-            <span className='uppercase'>{task?.priority} Priority</span>
+            <span className='uppercase'>
+              {PRIORITY_PT_BR[task?.priority?.toUpperCase()] || task?.priority} {/* texto traduzido */}
+              {" "} {/* espaço */}
+              Prioridade
+            </span>
           </div>
           <TaskDialog task={task} />
         </div>

@@ -26,6 +26,19 @@ import UserList from "./UsersSelect";
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
 const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
 
+const STATUS_PT_BR = {
+  "TODO": "Para Fazer",
+  "IN PROGRESS": "Em Progresso",
+  "COMPLETED": "Finalizado",
+};
+
+const PRIORITY_PT_BR = {
+  "HIGH": "Alta",
+  "MEDIUM": "Média",
+  "NORMAL": "Normal",
+  "LOW": "Baixa",
+};
+
 const uploadedFileURLs = [];
 
 const uploadFile = async (file) => {
@@ -159,12 +172,14 @@ const AddTask = ({ open, setOpen, task }) => {
                 lists={LISTS}
                 selected={stage}
                 setSelected={setStage}
+                getLabel={(val) => STATUS_PT_BR[val] || val}
               />
               <SelectList
                 label='Prioridade'
                 lists={PRIORIRY}
                 selected={priority}
                 setSelected={setPriority}
+                getLabel={(val) => PRIORITY_PT_BR[val] || val}
               />
             </div>
             <div className='flex gap-4'>

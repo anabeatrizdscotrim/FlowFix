@@ -49,22 +49,22 @@ export const updateURL = ({ searchTerm, navigate, location }) => {
 };
 
 export const PRIOTITYSTYELS = {
-  high: "text-red-600",
-  medium: "text-yellow-600",
-  low: "text-blue-600",
+  high: "text-red-400",
+  medium: "text-yellow-400",
+  low: "text-blue-400",
 };
 
 export const TASK_TYPE = {
-  todo: "bg-blue-600",
-  "in progress": "bg-yellow-600",
-  completed: "bg-green-600",
+  todo: "bg-blue-400",
+  "in progress": "bg-yellow-400",
+  completed: "bg-green-400",
 };
 
 export const BGS = [
-  "bg-blue-600",
-  "bg-yellow-600",
-  "bg-red-600",
-  "bg-green-600",
+  "bg-blue-400",
+  "bg-yellow-400",
+  "bg-red-400",
+  "bg-green-400",
 ];
 
 export const getCompletedSubTasks = (items) => {
