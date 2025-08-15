@@ -102,6 +102,11 @@ const AddTask = ({ open, setOpen, task }) => {
   const URLS = task?.assets ? [...task.assets] : [];
 
   const handleOnSubmit = async (data) => {
+
+    const [year, month, day] = data.date.split('-');
+    const selectedDate = new Date(year, month - 1, day); 
+
+
     for (const file of assets) {
       setUploading(true);
       try {
@@ -117,6 +122,7 @@ const AddTask = ({ open, setOpen, task }) => {
     try {
       const newData = {
         ...data,
+        date: selectedDate,
         assets: [...URLS, ...uploadedFileURLs],
         team,
         stage,
@@ -162,6 +168,14 @@ const AddTask = ({ open, setOpen, task }) => {
               className='w-full rounded'
               register={register("title", {
                 required: "O título é obrigatório!",
+                  minLength: {
+                    value: 3,
+                    message: "O título deve ter pelo menos 3 caracteres",
+                  },
+                  maxLength: {
+                    value: 100,
+                    message: "O título não pode exceder 100 caracteres",
+                  },
               })}
               error={errors.title ? errors.title.message : ""}
             />

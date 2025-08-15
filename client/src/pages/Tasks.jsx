@@ -49,7 +49,8 @@ const Tasks = () => {
           <Button
             label='Criar Tarefa'
             icon={<IoMdAdd className='text-lg' />}
-            className='flex flex-row-reverse gap-1 items-center bg-blue-400 text-white rounded-md py-2 2xl:py-2.5'
+            className='flex flex-row-reverse gap-1 items-center bg-black text-white rounded-md 2xl:py-2.5
+             hover:bg-gray-800 transition-colors duration-200 ease-in-out'
             onClick={() => setOpen(true)}
           />
         )}

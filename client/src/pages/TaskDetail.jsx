@@ -48,8 +48,8 @@ const bgColor = {
 };
 
 const TABS = [
-  { title: "Task Detail", icon: <FaTasks /> },
-  { title: "Activities/Timeline", icon: <RxActivityLog /> },
+  { title: "Detalhes da Tarefa", icon: <FaTasks /> },
+  { title: "Timeline", icon: <RxActivityLog /> },
 ];
 
 const TASKTYPEICON = {
@@ -59,7 +59,7 @@ const TASKTYPEICON = {
     </div>
   ),
   started: (
-    <div className='w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white'>
+    <div className='w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center text-white'>
       <FaThumbsUp size={20} />
     </div>
   ),
@@ -69,21 +69,31 @@ const TASKTYPEICON = {
     </div>
   ),
   bug: (
-    <div className='text-red-600'>
+    <div className='text-red-400'>
       <FaBug size={24} />
     </div>
   ),
   completed: (
-    <div className='w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white'>
+    <div className='w-10 h-10 rounded-full bg-green-400 flex items-center justify-center text-white'>
       <MdOutlineDoneAll size={24} />
     </div>
   ),
   "in progress": (
-    <div className='w-8 h-8 flex items-center justify-center rounded-full bg-violet-600 text-white'>
+    <div className='w-8 h-8 flex items-center justify-center rounded-full bg-violet-400 text-white'>
       <GrInProgress size={16} />
     </div>
   ),
 };
+
+const TASKTYPELABEL = {
+  commented: "Comentado",
+  started: "Iniciado",
+  assigned: "Atribuído",
+  bug: "Erro",
+  completed: "Concluído",
+  "in progress": "Em andamento",
+};
+
 
 const act_types = [
   "Started",
@@ -146,7 +156,7 @@ const Activities = ({ activity, id, refetch }) => {
   return (
     <div className='w-full flex gap-10 2xl:gap-20 min-h-screen px-10 py-8 bg-white shadow rounded-md justify-between overflow-y-auto'>
       <div className='w-full md:w-1/2'>
-        <h4 className='text-gray-600 font-semibold text-lg mb-5'>Activities</h4>
+        <h4 className='text-gray-600 font-semibold text-lg mb-5'>Atividades</h4>
         <div className='w-full space-y-0'>
           {activity?.map((item, index) => (
             <Card
@@ -160,7 +170,7 @@ const Activities = ({ activity, id, refetch }) => {
 
       <div className='w-full md:w-1/3'>
         <h4 className='text-gray-600 font-semibold text-lg mb-5'>
-          Add Activity
+          Adicionar Atividade
         </h4>
         <div className='w-full flex flex-wrap gap-5'>
           {act_types.map((item, index) => (
@@ -178,7 +188,7 @@ const Activities = ({ activity, id, refetch }) => {
             rows={10}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder='Type ......'
+            placeholder='Adicione uma descrição...'
             className='bg-white w-full mt-10 border border-gray-300 outline-none p-4 rounded-md focus:ring-2 ring-blue-500'
           ></textarea>
           {isLoading ? (
@@ -186,9 +196,9 @@ const Activities = ({ activity, id, refetch }) => {
           ) : (
             <Button
               type='button'
-              label='Submit'
+              label='Enviar'
               onClick={handleSubmit}
-              className='bg-blue-600 text-white rounded'
+              className='bg-blue-400 text-white rounded hover:bg-blue-200'
             />
           )}
         </div>

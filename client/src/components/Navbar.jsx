@@ -48,7 +48,7 @@ const Navbar = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               value={searchTerm}
               type='text'
-              placeholder='Search...'
+              placeholder='Procurar...'
               className='flex-1 outline-none bg-transparent placeholder:text-gray-500 text-gray-800'
             />
           </form>

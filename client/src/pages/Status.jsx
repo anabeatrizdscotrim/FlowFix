@@ -14,11 +14,11 @@ const StatusPage = () => {
   const TableHeader = () => (
     <thead className='border-b border-gray-300 dark:border-gray-600'>
       <tr className='text-black dark:text-white  text-left'>
-        <th className='py-2'>Full Name</th>
-        <th className='py-2'>Title</th>
-        <th className='py-2'>Task Progress</th>
-        <th className='py-2'>Task Numbers</th>
-        <th className='py-2'>Total Task</th>
+        <th className='py-2'>Nome</th>
+        <th className='py-2'>Cargo</th>
+        <th className='py-2'>Progresso</th>
+        <th className='py-2'>Quantidade de Tarefas</th>
+        <th className='py-2'>Total de Tarefas</th>
       </tr>
     </thead>
   );
@@ -30,7 +30,7 @@ const StatusPage = () => {
       <tr className='border-b border-gray-200 text-gray-600 hover:bg-gray-400/10'>
         <td className='p-2'>
           <div className='flex items-center gap-3'>
-            <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-blue-700'>
+            <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-black'>
               <span className='text-xs md:text-sm text-center'>
                 {getInitials(user.name)}
               </span>
@@ -42,13 +42,13 @@ const StatusPage = () => {
         <td className='p-2'>
           {
             <div className='flex items-center gap-2 text-white text-sm'>
-              <p className='px-2 py-1 bg-blue-600 rounded'>
+              <p className='px-2 py-1 bg-blue-400 rounded'>
                 {(counts.inProgress * 100).toFixed(1)}%
               </p>
-              <p className='px-2 py-1 bg-amber-600 rounded'>
+              <p className='px-2 py-1 bg-amber-400 rounded'>
                 {(counts.todo * 100).toFixed(1)}%
               </p>
-              <p className='px-2 py-1 bg-emerald-600 rounded'>
+              <p className='px-2 py-1 bg-emerald-400 rounded'>
                 {(counts.completed * 100).toFixed(1)}%
               </p>
             </div>
@@ -73,7 +73,7 @@ const StatusPage = () => {
     <>
       <div className='w-full md:px-1 px-0 mb-6'>
         <div className='flex items-center justify-between mb-8'>
-          <Title title='User Task Status' />
+          <Title title='Status das Tarefas' />
         </div>
         <div className='bg-white dark:bg-[#1f1f1f] px-2 md:px-4 py-4 shadow-md rounded'>
           <div className='overflow-x-auto'>

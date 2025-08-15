@@ -19,18 +19,27 @@ const AddSubTask = ({ open, setOpen, id }) => {
   const [addSbTask, { isLoading }] = useCreateSubTaskMutation();
 
   const handleOnSubmit = async (data) => {
+    
     try {
-      const res = await addSbTask({ data, id }).unwrap();
+    const [year, month, day] = data.date.split("-");
+    const selectedDate = new Date(year, month - 1, day); 
 
-      toast.success(res.message);
+    const newData = {
+      ...data,
+      date: selectedDate,
+    };
 
-      setTimeout(() => {
-        setOpen(false);
-      }, 500);
-    } catch (err) {
-      console.log(err);
-      toast.error(err?.data?.message || err.error);
-    }
+    const res = await addSbTask({ data: newData, id }).unwrap();
+
+    toast.success(res.message);
+
+    setTimeout(() => {
+      setOpen(false);
+    }, 500);
+  } catch (err) {
+    console.log(err);
+    toast.error(err?.data?.message || err.error);
+  }
   };
 
   return (
@@ -41,17 +50,17 @@ const AddSubTask = ({ open, setOpen, id }) => {
             as='h2'
             className='text-base font-bold leading-6 text-gray-900 mb-4'
           >
-            ADD SUB-TASK
+            ADICIONAR SUBTAREFA
           </Dialog.Title>
           <div className='mt-2 flex flex-col gap-6'>
             <Textbox
-              placeholder='Sub-Task title'
+              placeholder='Título da Subtarefa'
               type='text'
               name='title'
-              label='Title'
+              label='Título'
               className='w-full rounded'
               register={register("title", {
-                required: "Title is required!",
+                required: "O título é obrigatório",
               })}
               error={errors.title ? errors.title.message : ""}
             />
@@ -61,10 +70,10 @@ const AddSubTask = ({ open, setOpen, id }) => {
                 placeholder='Date'
                 type='date'
                 name='date'
-                label='Task Date'
+                label='Data'
                 className='w-full rounded'
                 register={register("date", {
-                  required: "Date is required!",
+                  required: "A data é obrigatória!",
                 })}
                 error={errors.date ? errors.date.message : ""}
               />
@@ -75,7 +84,7 @@ const AddSubTask = ({ open, setOpen, id }) => {
                 label='Tag'
                 className='w-full rounded'
                 register={register("tag", {
-                  required: "Tag is required!",
+                  required: "A tag é obrigatória!",
                 })}
                 error={errors.tag ? errors.tag.message : ""}
               />
@@ -89,15 +98,15 @@ const AddSubTask = ({ open, setOpen, id }) => {
             <div className='py-3 mt-4 flex sm:flex-row-reverse gap-4'>
               <Button
                 type='submit'
-                className='bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 sm:ml-3 sm:w-auto'
-                label='Add Task'
+                className='bg-blue-400 text-sm font-semibold text-white hover:bg-blue-200 sm:ml-3 sm:w-auto'
+                label='Adicionar'
               />
 
               <Button
                 type='button'
-                className='bg-white border text-sm font-semibold text-gray-900 sm:w-auto'
+                className='bg-red-400 text-sm font-semibold text-white hover:bg-red-200 sm:ml-3 sm:w-auto'
                 onClick={() => setOpen(false)}
-                label='Cancel'
+                label='Cancelar'
               />
             </div>
           )}

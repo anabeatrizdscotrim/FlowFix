@@ -71,20 +71,22 @@ const Sidebar = () => {
   };
 
   const NavLink = ({ el }) => {
-    return (
-      <Link
-        onClick={closeSidebar}
-        to={el.link}
-        className={clsx(
-          "w-fult lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-400 text-base hover:bg-[#e3e4e4]",
-          path === el.link.split("/")[0] ? "bg-blue-400 text-white" : ""
-        )}
-      >
-        {el.icon}
-        <span className='hover:text-[#2c3744]'>{el.label}</span>
-      </Link>
-    );
-  };
+  return (
+    <Link
+      onClick={closeSidebar}
+      to={el.link}
+      className={clsx(
+        "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-400 text-base",
+        "hover:bg-[#e3e4e4] hover:shadow-md hover:scale-[1.02] hover:text-[#2c3744]",
+        "transition-all duration-200 ease-in-out",
+        path === el.link.split("/")[0] ? "bg-black text-white" : ""
+      )}
+    >
+      {el.icon}
+      <span>{el.label}</span>
+    </Link>
+  );
+};
 
   return (
     <div className='w-full h-full flex flex-col gap-6 p-5'>

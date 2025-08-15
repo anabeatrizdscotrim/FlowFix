@@ -67,6 +67,10 @@ const AddUser = ({ open, setOpen, userData }) => {
               className='w-full rounded'
               register={register("name", {
                 required: "O nome é obrigatório!",
+                    minLength: {
+                    value: 3,
+                    message: "O nome deve ter pelo menos 3 caracteres!",
+                  },
               })}
               error={errors.name ? errors.name.message : ""}
             />
@@ -74,10 +78,11 @@ const AddUser = ({ open, setOpen, userData }) => {
               placeholder='Cargo'
               type='text'
               name='title'
-              label='Título'
+              label='Cargo'
               className='w-full rounded'
               register={register("title", {
                 required: "O cargo é obrigatório!",
+                validate: (value) => value.trim() !== "" || "O cargo não pode estar vazio!",
               })}
               error={errors.title ? errors.title.message : ""}
             />
@@ -89,6 +94,10 @@ const AddUser = ({ open, setOpen, userData }) => {
               className='w-full rounded'
               register={register("email", {
                 required: "O email é obrigatório!",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Digite um email válido!",
+                  },
               })}
               error={errors.email ? errors.email.message : ""}
             />
@@ -101,6 +110,7 @@ const AddUser = ({ open, setOpen, userData }) => {
               className='w-full rounded'
               register={register("role", {
                 required: "O tipo é obrigatório!",
+                validate: (value) => value.trim() !== "" || "O tipo não pode estar vazio!",
               })}
               error={errors.role ? errors.role.message : ""}
             />
