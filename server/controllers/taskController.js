@@ -10,16 +10,16 @@ const createTask = asyncHandler(async (req, res) => {
       req.body;
 
     //alert users of the task
-    let text = "New task has been assigned to you";
+    let text = "Uma nova tarefa foi atribuída a você";
     if (team?.length > 1) {
-      text = text + ` and ${team?.length - 1} others.`;
+      text = text + ` e mais ${team?.length - 1} pessoas.`;
     }
 
     text =
       text +
-      ` The task priority is set a ${priority} priority, so check and act accordingly. The task date is ${new Date(
+      ` Verifique a prioridade e aja de acordo. A data da tarefa é ${new Date(
         date
-      ).toDateString()}. Thank you!!!`;
+      ).toDateString()}. Obrigado!`;
 
     const activity = {
       type: "assigned",
@@ -64,7 +64,7 @@ const createTask = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, task, message: "Task created successfully." });
+      .json({ status: true, task, message: "Tarefa criada com sucesso." });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ status: false, message: error.message });
@@ -77,20 +77,19 @@ const duplicateTask = asyncHandler(async (req, res) => {
     const { userId } = req.user;
 
     const task = await Task.findById(id);
-
-    //alert users of the task
-    let text = "New task has been assigned to you";
-    if (team.team?.length > 1) {
-      text = text + ` and ${task.team?.length - 1} others.`;
+    if (!task) {
+      return res.status(404).json({ status: false, message: "Tarefa não encontrada." });
     }
 
-    text =
-      text +
-      ` The task priority is set a ${
-        task.priority
-      } priority, so check and act accordingly. The task date is ${new Date(
-        task.date
-      ).toDateString()}. Thank you!!!`;
+    //alert users of the task
+    let text = "Uma nova tarefa foi atribuída a você";
+    if (task.team?.length > 1) {
+      text += ` e mais ${task.team.length - 1} pessoas.`;
+    }
+
+    text += ` A prioridade da tarefa é ${
+      task.priority
+    }. Verifique e aja de acordo. A data da tarefa é ${new Date(task.date).toDateString()}. Obrigado!`;
 
     const activity = {
       type: "assigned",
@@ -99,20 +98,17 @@ const duplicateTask = asyncHandler(async (req, res) => {
     };
 
     const newTask = await Task.create({
-      ...task,
-      title: "Duplicate - " + task.title,
+      title: "Duplicada - " + task.title,
+      team: task.team,
+      subTasks: task.subTasks,
+      assets: task.assets,
+      links: task.links,
+      priority: task.priority,
+      stage: task.stage,
+      activities: [activity],
+      description: task.description,
+      date: task.date
     });
-
-    newTask.team = task.team;
-    newTask.subTasks = task.subTasks;
-    newTask.assets = task.assets;
-    newTask.links = task.links;
-    newTask.priority = task.priority;
-    newTask.stage = task.stage;
-    newTask.activities = activity;
-    newTask.description = task.description;
-
-    await newTask.save();
 
     await Notice.create({
       team: newTask.team,
@@ -122,7 +118,7 @@ const duplicateTask = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+      .json({ status: true, message: "Tarefa duplicada com sucesso." });
   } catch (error) {
     return res.status(500).json({ status: false, message: error.message });
   }
@@ -155,7 +151,7 @@ const updateTask = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+      .json({ status: true, message: "Tarefa duplicada com sucesso." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -174,7 +170,7 @@ const updateTaskStage = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "Task stage changed successfully." });
+      .json({ status: true, message: "A etapa da tarefa foi alterada com sucesso." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -200,8 +196,8 @@ const updateSubTaskStage = asyncHandler(async (req, res) => {
     res.status(200).json({
       status: true,
       message: status
-        ? "Task has been marked completed"
-        : "Task has been marked uncompleted",
+        ? "A tarefa foi marcada como concluída"
+        : "A tarefa foi marcada como não concluída",
     });
   } catch (error) {
     console.log(error);
@@ -229,7 +225,7 @@ const createSubTask = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "SubTask added successfully." });
+      .json({ status: true, message: "Subtarefa adicionada com sucesso." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -318,7 +314,7 @@ const postTaskActivity = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "Activity posted successfully." });
+      .json({ status: true, message: "Atividade publicada com sucesso." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -336,7 +332,7 @@ const trashTask = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       status: true,
-      message: `Task trashed successfully.`,
+      message: `Tarefa movida para a lixeira com sucesso.`,
     });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
@@ -367,7 +363,7 @@ const deleteRestoreTask = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       status: true,
-      message: `Operation performed successfully.`,
+      message: `Operação realizada com sucesso.`,
     });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });

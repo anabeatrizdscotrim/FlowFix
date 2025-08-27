@@ -1,11 +1,8 @@
 import clsx from "clsx";
 import moment from "moment";
+import 'moment/locale/pt-br'; 
 import React, { useEffect } from "react";
-import { FaNewspaper } from "react-icons/fa";
-import { FaArrowsToDot } from "react-icons/fa6";
-import { LuClipboardEdit } from "react-icons/lu";
 import {
-  MdAdminPanelSettings,
   MdKeyboardArrowDown,
   MdKeyboardArrowUp,
   MdKeyboardDoubleArrowUp,
@@ -19,13 +16,13 @@ import { useGetDasboardStatsQuery } from "../redux/slices/api/taskApiSlice";
 import { BGS, PRIOTITYSTYELS, TASK_TYPE, getInitials } from "../utils";
 import { useSelector } from "react-redux";
 
-const Card = ({ label, count, bg, icon }) => {
+const Card = ({ label, count, bg, icon, }) => {
+  
   return (
     <div className='w-full h-32 bg-white p-5 shadow-md rounded-md flex items-center justify-between'>
       <div className='h-full flex flex-1 flex-col justify-between'>
         <p className='text-base text-gray-600'>{label}</p>
         <span className='text-2xl font-semibold'>{count}</span>
-        <span className='text-sm text-gray-400'>{"111 last month"}</span>
       </div>
       <div
         className={clsx(
@@ -62,28 +59,28 @@ const Dashboard = () => {
       label: "TOTAL DE TAREFAS",
       total: data?.totalTasks || 0,
       icon: <RiFileList2Fill />,
-      bg: "bg-[#60a5fa]",
+      bg: "bg-violet-400",
     },
     {
       _id: "2",
       label: "TAREFAS FINALIZADAS",
       total: totals["completed"] || 0,
       icon: <BsFillClipboard2CheckFill />,
-      bg: "bg-[#4ade80]",
+      bg: "bg-green-400",
     },
     {
       _id: "3",
       label: "TAREFAS EM PROGRESSO",
       total: totals["in progress"] || 0,
       icon: <BsClockFill />,
-      bg: "bg-[#FA9064]",
+      bg: "bg-yellow-400",
     },
     {
       _id: "4",
       label: "TAREFAS PARA FAZER",
-      total: totals["todo"],
+      total: totals["todo"] || 0,
       icon: <ImTarget />,
-      bg: "bg-[#ef4444]" || 0,
+      bg: "bg-blue-400",
     },
   ];
 
@@ -103,9 +100,9 @@ const Dashboard = () => {
           <Chart data={data?.graphData} />
         </div>
         <div className='w-full flex flex-col md:flex-row gap-4 2xl:gap-10 py-8'>
-          {/* RECENT AUTHORS */}
+          {/* autores recentes */}
           {data && <TaskTable tasks={data?.last10Task} />}
-          {/* RECENT USERS */}
+          {/* usuários recentes */}
           {data && user?.isAdmin && <UserTable users={data?.users} />}
         </div>
       </>
@@ -145,10 +142,10 @@ const UserTable = ({ users }) => {
             user?.isActive ? "bg-blue-100" : "bg-yellow-100"
           )}
         >
-          {user?.isActive ? "Active" : "Disabled"}
+          {user?.isActive ? "Ativo" : "Inativo"}
         </p>
       </td>
-      <td className='py-2 text-sm'>{moment(user?.createdAt).fromNow()}</td>
+      <td className='py-2 text-sm'>{moment(user?.createdAt).format("DD/MM/YYYY")}</td>
     </tr>
   );
 
@@ -168,12 +165,21 @@ const UserTable = ({ users }) => {
 
 const TaskTable = ({ tasks }) => {
   const { user } = useSelector((state) => state.auth);
+  
 
   const ICONS = {
     high: <MdKeyboardDoubleArrowUp />,
     medium: <MdKeyboardArrowUp />,
     low: <MdKeyboardArrowDown />,
   };
+
+  const prioridadePT = {
+  low: "Baixa",
+  medium: "Média",
+  high: "Alta",
+  normal: "Normal"
+  };
+
 
   const TableHeader = () => (
     <thead className='border-b border-gray-300 dark:border-gray-600'>
@@ -203,7 +209,7 @@ const TaskTable = ({ tasks }) => {
           <span className={clsx("text-lg", PRIOTITYSTYELS[task?.priority])}>
             {ICONS[task?.priority]}
           </span>
-          <span className='capitalize'>{task?.priority}</span>
+          <span className='capitalize'>{prioridadePT[task?.priority]}</span>
         </div>
       </td>
 
@@ -225,7 +231,7 @@ const TaskTable = ({ tasks }) => {
 
       <td className='py-2 hidden md:block'>
         <span className='text-base text-gray-600'>
-          {moment(task?.date).fromNow()}
+          {moment(task?.date).format("DD/MM/YYYY")}
         </span>
       </td>
     </tr>

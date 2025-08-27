@@ -53,8 +53,8 @@ const TaskCard = ({ task }) => {
           >
             <span className='text-lg'>{ICONS[task?.priority]}</span>
             <span className='uppercase'>
-              {PRIORITY_PT_BR[task?.priority?.toUpperCase()] || task?.priority} {/* texto traduzido */}
-              {" "} {/* espaço */}
+              {PRIORITY_PT_BR[task?.priority?.toUpperCase()] || task?.priority} {}
+              {" "} {}
               Prioridade
             </span>
           </div>

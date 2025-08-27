@@ -208,7 +208,7 @@ export default function TaskDialog({ task }) {
                         disabled={index === 0 ? false : !user.isAdmin}
                         onClick={el?.onClick}
                         className={`${
-                          active ? "bg-blue-400 text-white" : "text-gray-900"
+                          active ? "bg-black text-white" : "text-gray-900"
                         } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
                       >
                         {el.icon}
@@ -255,7 +255,7 @@ export default function TaskDialog({ task }) {
         task={task}
         key={new Date().getTime()}
       />
-      <AddSubTask open={open} setOpen={setOpen} />
+      <AddSubTask open={open} setOpen={setOpen} id={task._id} />
       <ConfirmatioDialog
         open={openDialog}
         setOpen={setOpenDialog}

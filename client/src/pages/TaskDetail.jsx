@@ -1,17 +1,14 @@
 import clsx from "clsx";
 import moment from "moment";
+import "moment/locale/pt-br";
 import React, { useState } from "react";
-import { FaBug, FaSpinner, FaTasks, FaThumbsUp, FaUser } from "react-icons/fa";
-import { GrInProgress } from "react-icons/gr";
+import { FaSpinner} from "react-icons/fa";
 import {
   MdKeyboardArrowDown,
   MdKeyboardArrowUp,
   MdKeyboardDoubleArrowUp,
-  MdOutlineDoneAll,
-  MdOutlineMessage,
   MdTaskAlt,
 } from "react-icons/md";
-import { RxActivityLog } from "react-icons/rx";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button, Loading, Tabs } from "../components";
@@ -27,6 +24,16 @@ import {
   getCompletedSubTasks,
   getInitials,
 } from "../utils";
+import { CiCircleCheck } from "react-icons/ci";
+import { PiUserCircleLight } from "react-icons/pi";
+import { TbProgress } from "react-icons/tb";
+import { BiCommentEdit } from "react-icons/bi";
+import { AiOutlinePlayCircle } from "react-icons/ai";
+import { GoAlert } from "react-icons/go";
+import { CgDetailsLess } from "react-icons/cg";
+import { Ri24HoursFill } from "react-icons/ri";
+
+moment.locale("pt-br");
 
 const assets = [
   "https://images.pexels.com/photos/2418664/pexels-photo-2418664.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
@@ -48,53 +55,53 @@ const bgColor = {
 };
 
 const TABS = [
-  { title: "Detalhes da Tarefa", icon: <FaTasks /> },
-  { title: "Timeline", icon: <RxActivityLog /> },
+  { title: "Detalhes da Tarefa", icon: <CgDetailsLess /> },
+  { title: "Timeline", icon: <Ri24HoursFill /> },
 ];
 
 const TASKTYPEICON = {
   commented: (
-    <div className='w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center text-white'>
-      <MdOutlineMessage />,
+    <div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white'>
+      <BiCommentEdit size={22} />
     </div>
   ),
   started: (
-    <div className='w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center text-white'>
-      <FaThumbsUp size={20} />
+    <div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white'>
+      <AiOutlinePlayCircle  size={24} />
     </div>
   ),
   assigned: (
-    <div className='w-6 h-6 flex items-center justify-center rounded-full bg-gray-500 text-white'>
-      <FaUser size={14} />
+    <div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white'>
+      <PiUserCircleLight size={24} />
     </div>
   ),
   bug: (
-    <div className='text-red-400'>
-      <FaBug size={24} />
+    <div className='w-10 h-10 rounded-full bg-red-400 flex items-center justify-center text-white'>
+      <GoAlert size={22} />
     </div>
   ),
   completed: (
     <div className='w-10 h-10 rounded-full bg-green-400 flex items-center justify-center text-white'>
-      <MdOutlineDoneAll size={24} />
+      <CiCircleCheck size={24} />
     </div>
   ),
   "in progress": (
-    <div className='w-8 h-8 flex items-center justify-center rounded-full bg-violet-400 text-white'>
-      <GrInProgress size={16} />
+    <div className='w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center text-white'>
+      <TbProgress size={24} />
     </div>
   ),
 };
 
-const TASKTYPELABEL = {
-  commented: "Comentado",
+const TYPE_LABELS = {
+  commented: "Comentário",
   started: "Iniciado",
   assigned: "Atribuído",
-  bug: "Erro",
+  bug: "Problema",
   completed: "Concluído",
   "in progress": "Em andamento",
 };
 
-
+/*
 const act_types = [
   "Started",
   "Completed",
@@ -102,7 +109,30 @@ const act_types = [
   "Commented",
   "Bug",
   "Assigned",
+];*/
+
+const act_types = [
+  { value: "Started", label: "Iniciado" },
+  { value: "Completed", label: "Concluído" },
+  { value: "In Progress", label: "Em andamento" },
+  { value: "Commented", label: "Comentado" },
+  { value: "Bug", label: "Problema" },
+  { value: "Assigned", label: "Atribuído" },
 ];
+
+
+const PRIORITY_TRANSLATION = {
+  low: "Baixa",
+  medium: "Média",
+  high: "Alta",
+  normal: "Normal"
+};
+
+const STATUS_TRANSLATION = {
+  todo: "Para Fazer",
+  "in progress": "Em Progresso",
+  completed: "Finalizado",
+};
 
 const Activities = ({ activity, id, refetch }) => {
   const [selected, setSelected] = useState("Started");
@@ -144,8 +174,10 @@ const Activities = ({ activity, id, refetch }) => {
         <div className='flex flex-col gap-y-1 mb-8'>
           <p className='font-semibold'>{item?.by?.name}</p>
           <div className='text-gray-500 space-x-2'>
-            <span className='capitalize'>{item?.type}</span>
-            <span className='text-sm'>{moment(item?.date).fromNow()}</span>
+            <span className='capitalize'>
+              {TYPE_LABELS[item?.type] || item?.type}
+            </span>
+            <span className='text-sm'>{moment(item?.date).format("DD/MM/YYYY")}</span>
           </div>
           <div className='text-gray-700'>{item?.activity}</div>
         </div>
@@ -173,15 +205,15 @@ const Activities = ({ activity, id, refetch }) => {
           Adicionar Atividade
         </h4>
         <div className='w-full flex flex-wrap gap-5'>
-          {act_types.map((item, index) => (
-            <div key={item} className='flex gap-2 items-center'>
+          {act_types.map((item) => (
+            <div key={item.value} className='flex gap-2 items-center'>
               <input
                 type='checkbox'
                 className='w-4 h-4'
-                checked={selected === item ? true : false}
-                onChange={(e) => setSelected(item)}
+                checked={selected === item.value}
+                onChange={() => setSelected(item.value)}
               />
-              <p>{item}</p>
+              <p>{item.label}</p>
             </div>
           ))}
           <textarea
@@ -198,7 +230,7 @@ const Activities = ({ activity, id, refetch }) => {
               type='button'
               label='Enviar'
               onClick={handleSubmit}
-              className='bg-blue-400 text-white rounded hover:bg-blue-200'
+              className='bg-black text-white rounded hover:bg-gray-500'
             />
           )}
         </div>
@@ -263,34 +295,34 @@ const TaskDetail = () => {
                     )}
                   >
                     <span className='text-lg'>{ICONS[task?.priority]}</span>
-                    <span className='uppercase'>{task?.priority} Priority</span>
+                    <span className='uppercase'>{PRIORITY_TRANSLATION[task?.priority] || task?.priority} Prioridade</span>
                   </div>
 
                   <div className={clsx("flex items-center gap-2")}>
                     <TaskColor className={TASK_TYPE[task?.stage]} />
-                    <span className='text-black uppercase'>{task?.stage}</span>
+                    <span className='text-black uppercase'> {STATUS_TRANSLATION[task?.stage] || task?.stage}</span>
                   </div>
                 </div>
 
                 <p className='text-gray-500'>
-                  Created At: {new Date(task?.date).toDateString()}
+                  Criado em: {task?.date ? moment(task.date).format("DD/MM/YYYY") : "-"}
                 </p>
 
                 <div className='flex items-center gap-8 p-4 border-y border-gray-200'>
                   <div className='space-x-2'>
-                    <span className='font-semibold'>Assets :</span>
+                    <span className='font-semibold'>Arquivos :</span>
                     <span>{task?.assets?.length}</span>
                   </div>
                   <span className='text-gray-400'>|</span>
                   <div className='space-x-2'>
-                    <span className='font-semibold'>Sub-Task :</span>
+                    <span className='font-semibold'>Subtarefa :</span>
                     <span>{task?.subTasks?.length}</span>
                   </div>
                 </div>
 
                 <div className='space-y-4 py-6'>
                   <p className='text-gray-500 font-semibold text-sm'>
-                    TASK TEAM
+                    TIME
                   </p>
                   <div className='space-y-3'>
                     {task?.team?.map((m, index) => (
@@ -300,7 +332,7 @@ const TaskDetail = () => {
                       >
                         <div
                           className={
-                            "w-10 h-10 rounded-full text-white flex items-center justify-center text-sm -mr-1 bg-blue-600"
+                            "w-10 h-10 rounded-full text-white flex items-center justify-center text-sm -mr-1 bg-black"
                           }
                         >
                           <span className='text-center'>
@@ -319,15 +351,15 @@ const TaskDetail = () => {
                   <div className='space-y-4 py-6'>
                     <div className='flex items-center gap-5'>
                       <p className='text-gray-500 font-semibold text-sm'>
-                        SUB-TASKS
+                        SUBTAREFAS
                       </p>
                       <div
                         className={`w-fit h-8 px-2 rounded-full flex items-center justify-center text-white ${
                           percentageCompleted < 50
-                            ? "bg-rose-600"
+                            ? "bg-rose-400"
                             : percentageCompleted < 80
-                            ? "bg-amber-600"
-                            : "bg-emerald-600"
+                            ? "bg-amber-400"
+                            : "bg-emerald-400"
                         }`}
                       >
                         <p>{percentageCompleted.toFixed(2)}%</p>
@@ -337,27 +369,27 @@ const TaskDetail = () => {
                       {task?.subTasks?.map((el, index) => (
                         <div key={index + el?._id} className='flex gap-3'>
                           <div className='w-10 h-10 flex items-center justify-center rounded-full bg-violet-200'>
-                            <MdTaskAlt className='text-violet-600' size={26} />
+                            <MdTaskAlt className='text-violet-400' size={26} />
                           </div>
 
                           <div className='space-y-1'>
                             <div className='flex gap-2 items-center'>
                               <span className='text-sm text-gray-500'>
-                                {new Date(el?.date).toDateString()}
+                                Criado em: {el?.date ? moment(el.date).format("DD/MM/YYYY") : "-"}
                               </span>
 
-                              <span className='px-2 py-0.5 text-center text-sm rounded-full bg-violet-100 text-violet-700 font-semibold lowercase'>
+                              <span className='px-2 py-0.5 text-center text-sm rounded-full bg-violet-100 text-violet-400 font-semibold lowercase'>
                                 {el?.tag}
                               </span>
 
                               <span
                                 className={`px-2 py-0.5 text-center text-sm rounded-full font-semibold ${
                                   el?.isCompleted
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-amber-50 text-amber-600"
+                                    ? "bg-emerald-100 text-emerald-400"
+                                    : "bg-amber-50 text-amber-400"
                                 }`}
                               >
-                                {el?.isCompleted ? "done" : "in progress"}
+                                {el?.isCompleted ? "feito" : "em progresso"}
                               </span>
                             </div>
                             <p className='text-gray-700 pb-2'>{el?.title}</p>
@@ -367,8 +399,8 @@ const TaskDetail = () => {
                                 disabled={isSubmitting}
                                 className={`text-sm outline-none bg-gray-100 text-gray-800 p-1 rounded ${
                                   el?.isCompleted
-                                    ? "hover:bg-rose-100 hover:text-rose-800"
-                                    : "hover:bg-emerald-100 hover:text-emerald-800"
+                                    ? "hover:bg-rose-100 hover:text-rose-400"
+                                    : "hover:bg-emerald-100 hover:text-emerald-400"
                                 } disabled:cursor-not-allowed`}
                                 onClick={() =>
                                   handleSubmitAction({
@@ -381,9 +413,9 @@ const TaskDetail = () => {
                                 {isSubmitting ? (
                                   <FaSpinner className='animate-spin' />
                                 ) : el?.isCompleted ? (
-                                  " Mark as Undone"
+                                  " Marcar como não feita "
                                 ) : (
-                                  " Mark as Done"
+                                  " Marcar como feita "
                                 )}
                               </button>
                             </>
@@ -398,14 +430,14 @@ const TaskDetail = () => {
               <div className='w-full md:w-1/2 space-y-3'>
                 {task?.description && (
                   <div className='mb-10'>
-                    <p className='text-lg font-semibold'>TASK DESCRIPTION</p>
+                    <p className='text-lg font-semibold'>DESCRIÇÃO DA TAREFA</p>
                     <div className='w-full'>{task?.description}</div>
                   </div>
                 )}
 
                 {task?.assets?.length > 0 && (
                   <div className='pb-10'>
-                    <p className='text-lg font-semibold'>ASSETS</p>
+                    <p className='text-lg font-semibold'>ARQUIVOS</p>
                     <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {task?.assets?.map((el, index) => (
                         <img
@@ -421,14 +453,14 @@ const TaskDetail = () => {
 
                 {task?.links?.length > 0 && (
                   <div className=''>
-                    <p className='text-lg font-semibold'>SUPPORT LINKS</p>
+                    <p className='text-lg font-semibold'>LINKS</p>
                     <div className='w-full flex flex-col gap-4'>
                       {task?.links?.map((el, index) => (
                         <a
                           key={index}
                           href={el}
                           target='_blank'
-                          className='text-blue-600 hover:underline'
+                          className='text-blue-400 hover:underline'
                         >
                           {el}
                         </a>

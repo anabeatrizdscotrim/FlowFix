@@ -19,6 +19,14 @@ const ICONS = {
   low: <MdKeyboardArrowDown />,
 };
 
+const PRIORITY_TRANSLATION = {
+  low: "Baixa",
+  medium: "Média",
+  high: "Alta",
+  normal: "Normal"
+};
+
+
 const Table = ({ tasks }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -58,11 +66,11 @@ const Table = ({ tasks }) => {
   const TableHeader = () => (
     <thead className='w-full border-b border-gray-300 dark:border-gray-600'>
       <tr className='w-full text-black dark:text-white  text-left'>
-        <th className='py-2'>Task Title</th>
-        <th className='py-2'>Priority</th>
-        <th className='py-2 line-clamp-1'>Created At</th>
-        <th className='py-2'>Assets</th>
-        <th className='py-2'>Team</th>
+        <th className='py-2'>Título</th>
+        <th className='py-2'>Prioridade</th>
+        <th className='py-2 line-clamp-1'>Criado em</th>
+        <th className='py-2'>Detalhes</th>
+        <th className='py-2'>Time</th>
       </tr>
     </thead>
   );
@@ -86,7 +94,7 @@ const Table = ({ tasks }) => {
             {ICONS[task?.priority]}
           </span>
           <span className='capitalize line-clamp-1'>
-            {task?.priority} Priority
+            {PRIORITY_TRANSLATION[task?.priority] || task?.priority} Prioridade
           </span>
         </div>
       </td>
@@ -123,15 +131,15 @@ const Table = ({ tasks }) => {
 
       <td className='py-2 flex gap-2 md:gap-4 justify-end'>
         <Button
-          className='text-blue-600 hover:text-blue-500 sm:px-0 text-sm md:text-base'
-          label='Edit'
+          className='text-blue-400 hover:text-blue-300 sm:px-0 text-sm md:text-base'
+          label='Editar'
           type='button'
           onClick={() => editClickHandler(task)}
         />
 
         <Button
-          className='text-red-700 hover:text-red-500 sm:px-0 text-sm md:text-base'
-          label='Delete'
+          className='text-red-400 hover:text-red-300 sm:px-0 text-sm md:text-base'
+          label='Deletar'
           type='button'
           onClick={() => deleteClicks(task._id)}
         />

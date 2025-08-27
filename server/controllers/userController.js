@@ -12,13 +12,13 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!user) {
     return res
       .status(401)
-      .json({ status: false, message: "Invalid email or password." });
+      .json({ status: false, message: "Senha ou e-mail inválido." });
   }
 
   if (!user?.isActive) {
     return res.status(401).json({
       status: false,
-      message: "User account has been deactivated, contact the administrator",
+      message: "A conta do usuário foi desativada, entre em contato com o administrador.",
     });
   }
 
@@ -33,7 +33,7 @@ const loginUser = asyncHandler(async (req, res) => {
   } else {
     return res
       .status(401)
-      .json({ status: false, message: "Invalid email or password" });
+      .json({ status: false, message: "Senha ou e-mail inválido." });
   }
 });
 
@@ -46,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (userExists) {
     return res
       .status(400)
-      .json({ status: false, message: "Email address already exists" });
+      .json({ status: false, message: "O endereço de e-mail já existe." });
   }
 
   const user = await User.create({
@@ -67,7 +67,7 @@ const registerUser = asyncHandler(async (req, res) => {
   } else {
     return res
       .status(400)
-      .json({ status: false, message: "Invalid user data" });
+      .json({ status: false, message: "Dados de usuário inválidos" });
   }
 });
 
@@ -77,7 +77,7 @@ const logoutUser = (req, res) => {
     httpOnly: true,
     expires: new Date(0),
   });
-  res.status(200).json({ message: "Logged out successfully" });
+  res.status(200).json({ message: "Sessão encerrada com sucesso." });
 };
 
 // @GET -   Get user profile
@@ -191,11 +191,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
     res.status(201).json({
       status: true,
-      message: "Profile Updated Successfully.",
+      message: "Perfil atualizado com sucesso.",
       user: updatedUser,
     });
   } else {
-    res.status(404).json({ status: false, message: "User not found" });
+    res.status(404).json({ status: false, message: "Usuário não encontrado." });
   }
 });
 
@@ -214,12 +214,12 @@ const activateUserProfile = asyncHandler(async (req, res) => {
 
     res.status(201).json({
       status: true,
-      message: `User account has been ${
-        user?.isActive ? "activated" : "disabled"
+      message: `A conta do usuário foi ${
+      user?.isActive ? "ativada" : "desativada"
       }`,
     });
   } else {
-    res.status(404).json({ status: false, message: "User not found" });
+    res.status(404).json({ status: false, message: "Usuário não encontrado." });
   }
 });
 
@@ -245,10 +245,10 @@ const changeUserPassword = asyncHandler(async (req, res) => {
 
     res.status(201).json({
       status: true,
-      message: `Password chnaged successfully.`,
+      message: `Senha alterada com sucesso.`,
     });
   } else {
-    res.status(404).json({ status: false, message: "User not found" });
+    res.status(404).json({ status: false, message: "Usuário não encontrado." });
   }
 });
 
@@ -258,7 +258,7 @@ const deleteUserProfile = asyncHandler(async (req, res) => {
 
   await User.findByIdAndDelete(id);
 
-  res.status(200).json({ status: true, message: "User deleted successfully" });
+  res.status(200).json({ status: true, message: "Usuário removido com sucesso." });
 });
 
 export {

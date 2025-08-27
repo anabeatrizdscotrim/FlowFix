@@ -60,12 +60,18 @@ const Tasks = () => {
         <Tabs tabs={TABS} setSelected={setSelected}>
           {!status && (
             <div className='w-full flex justify-between gap-4 md:gap-x-12 py-4'>
-              <TaskTitle label='Para Fazer' className={TASK_TYPE.todo} />
+              <TaskTitle label='Para Fazer' 
+              className={TASK_TYPE.todo} 
+              cardClass='bg-blue-100'/>
               <TaskTitle
                 label='Em progresso'
                 className={TASK_TYPE["in progress"]}
+                cardClass='bg-yellow-100'
               />
-              <TaskTitle label='Finalizado' className={TASK_TYPE.completed} />
+              <TaskTitle 
+              label='Finalizado' 
+              className={TASK_TYPE.completed}
+              cardClass='bg-green-100' />
             </div>
           )}
 

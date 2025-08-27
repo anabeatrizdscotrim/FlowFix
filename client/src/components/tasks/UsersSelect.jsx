@@ -55,7 +55,7 @@ export default function UserList({ team, setTeam }) {
                   key={userIdx}
                   className={({ active }) =>
                     `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                      active ? "bg-blue-100 text-blue-400" : "text-gray-900"
+                      active ? "bg-gray-100 text-black" : "text-gray-900"
                     }`
                   }
                   value={user}
@@ -69,7 +69,7 @@ export default function UserList({ team, setTeam }) {
                       >
                         <div
                           className={
-                            "w-6 h-6 rounded-full text-white flex items-center justify-center bg-violet-400"
+                            "w-6 h-6 rounded-full text-white flex items-center justify-center bg-black"
                           }
                         >
                           <span className='text-center text-[10px]'>
