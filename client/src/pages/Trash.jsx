@@ -29,6 +29,19 @@ const ICONS = {
   low: <MdKeyboardArrowDown />,
 };
 
+const PRIORITY_LABELS = {
+  high: "Alta",
+  medium: "Média",
+  low: "Baixa",
+  normal: "Normal",
+};
+
+const STATUS_LABELS = {
+  todo: "Para fazer",
+  "in progress": "Em progresso",
+  completed: "Finalizado",
+};
+
 const Trash = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [open, setOpen] = useState(false);
@@ -140,14 +153,15 @@ const Trash = () => {
           <span className={clsx("text-lg", PRIOTITYSTYELS[item?.priority])}>
             {ICONS[item?.priority]}
           </span>
-          <span className=''>{item?.priority}</span>
+          <span className=''>{PRIORITY_LABELS[item?.priority] || item?.priority}</span>
         </div>
       </td>
 
       <td className='py-2 capitalize text-center md:text-start'>
-        {item?.stage}
+        {STATUS_LABELS[item?.stage] || item?.stage}
       </td>
-      <td className='py-2 text-sm'>{new Date(item?.date).toDateString()}</td>
+
+      <td className='py-2 text-sm'>{new Date(item?.date).toLocaleDateString("pt-BR")}</td>
 
       <td className='py-2 flex gap-1 justify-end'>
         <Button

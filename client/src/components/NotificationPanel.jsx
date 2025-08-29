@@ -13,12 +13,18 @@ import ViewNotification from "./ViewNotification";
 
 const ICONS = {
   alert: (
-    <HiBellAlert className='h-5 w-5 text-gray-600 group-hover:text-indigo-600' />
+    <HiBellAlert className='h-5 w-5 text-gray-600 group-hover:text-blue-400' />
   ),
   message: (
-    <BiSolidMessageRounded className='h-5 w-5 text-gray-600 group-hover:text-indigo-600' />
+    <BiSolidMessageRounded className='h-5 w-5 text-gray-600 group-hover:text-blue-400' />
   ),
 };
+
+const NOTIFICATION_LABELS = {
+  alert: "Alerta",
+  message: "Mensagem",
+};
+
 
 export default function NotificationPanel() {
   const [open, setOpen] = useState(false);
@@ -40,9 +46,9 @@ export default function NotificationPanel() {
   };
 
   const callsToAction = [
-    { name: "Cancel", href: "#", icon: "" },
+    { name: "Cancelar", href: "#", icon: "" },
     {
-      name: "Mark All Read",
+      name: "Marcar todas como lida",
       href: "#",
       icon: "",
       onClick: () => readHandler("all", ""),
@@ -56,7 +62,7 @@ export default function NotificationPanel() {
           <div className='w-8 h-8 flex items-center justify-center text-gray-800 dark:text-white  relative'>
             <IoIosNotificationsOutline className='text-2xl' />
             {data?.length > 0 && (
-              <span className='absolute text-center top-0 right-1 text-sm text-white font-semibold w-4 h-4 rounded-full bg-red-600'>
+              <span className='absolute text-center top-0 right-1 text-sm text-white font-semibold w-4 h-4 rounded-full bg-red-500'>
                 {data?.length}
               </span>
             )}
@@ -91,9 +97,9 @@ export default function NotificationPanel() {
                           onClick={() => viewHandler(item)}
                         >
                           <div className='flex items-center gap-3 font-semibold text-gray-900 capitalize dark:text-gray-200'>
-                            <p> {item.notiType}</p>
+                            <p>{NOTIFICATION_LABELS[item.notiType] || item.notiType}</p>
                             <span className='text-xs font-normal lowercase'>
-                              {moment(item.createdAt).fromNow()}
+                              {moment(item.createdAt).format("DD/MM/YYYY")}
                             </span>
                           </div>
                           <p className='line-clamp-1 mt-1 text-gray-600 dark:text-gray-500'>
@@ -111,7 +117,7 @@ export default function NotificationPanel() {
                         onClick={
                           item?.onClick ? () => item.onClick() : () => close()
                         }
-                        className='flex items-center justify-center gap-x-2.5 p-3 font-semibold text-blue-600 hover:bg-gray-100 dark:hover:bg-[#1c1c1c]'
+                        className='flex items-center justify-center gap-x-2.5 p-3 font-semibold text-blue-500 hover:bg-gray-100 dark:hover:bg-[#1c1c1c]'
                       >
                         {item.name}
                       </Link>

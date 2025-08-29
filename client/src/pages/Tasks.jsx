@@ -14,6 +14,12 @@ const TABS = [
   { title: "Lista", icon: <FaList /> },
 ];
 
+const STATUS_LABELS = {
+  todo: "Tarefas Para Fazer",
+  "in progress": "Tarefas Em Progresso",
+  completed: " Tarefas Finalizadas",
+};
+
 const Tasks = () => {
   const params = useParams();
   const { user } = useSelector((state) => state.auth);
@@ -43,7 +49,7 @@ const Tasks = () => {
   ) : (
     <div className='w-full'>
       <div className='flex items-center justify-between mb-4'>
-        <Title title={status ? `${status} Tasks` : "Tarefas"} />
+        <Title title={status ? STATUS_LABELS[status] || status : "Tarefas"} />
 
         {!status && user?.isAdmin && (
           <Button
