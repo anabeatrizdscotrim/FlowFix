@@ -1,42 +1,34 @@
-import React from "react";
-import clsx from "clsx";
+import React, { useState } from "react";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-const Textbox = React.forwardRef(
-  (
-    { type, placeholder, label, className, labelClass, register, name, error },
-    ref
-  ) => {
-    return (
-      <div className='w-full flex flex-col gap-1'>
-        {label && (
-          <span
-            htmlFor={name}
-            className={clsx("text-slate-900 dark:text-gray-500", labelClass)}
+const Textbox = ({ label, placeholder, type, register, error, className, isPassword }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+
+  return (
+    <div className="flex flex-col w-full">
+      {label && <label className="mb-1 text-sm font-medium dark:text-gray-200">{label}</label>}
+      <div className="relative w-full">
+        <input
+          type={inputType}
+          placeholder={placeholder}
+          {...register}
+          className={`w-full rounded-full border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 ${className}`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300"
           >
-            {label}
-          </span>
-        )}
-
-        <div>
-          <input
-            type={type || "text"}
-            name={name}
-            placeholder={placeholder}
-            ref={ref}
-            className={clsx(
-              "bg-transparent px-3 py-2.5 2xl:py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-300 dark:placeholder-gray-700 text-gray-900 dark:text-white outline-none text-base focus:ring-2 ring-blue-300",
-              className
-            )}
-            {...register}
-            aria-invalid={error ? "true" : "false"}
-          />
-        </div>
-        {error && (
-          <span className='text-xs text-[#f64949fe] mt-0.5 '>{error}</span>
+            {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+          </button>
         )}
       </div>
-    );
-  }
-);
+      {error && <span className="text-red-500 text-sm mt-1">{error}</span>}
+    </div>
+  );
+};
 
 export default Textbox;

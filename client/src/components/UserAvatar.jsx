@@ -10,6 +10,7 @@ import { logout } from "../redux/slices/authSlice";
 import { getInitials } from "../utils";
 import AddUser from "./AddUser";
 import ChangePassword from "./ChangePassword";
+import { apiSlice } from "../redux/slices/apiSlice";
 
 const UserAvatar = () => {
   const [open, setOpen] = useState(false);
@@ -23,6 +24,7 @@ const UserAvatar = () => {
     try {
       await logoutUser().unwrap();
       dispatch(logout());
+      dispatch(apiSlice.util.resetApiState());
 
       navigate("/log-in");
     } catch (error) {

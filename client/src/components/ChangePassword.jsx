@@ -1,5 +1,5 @@
 import { Dialog } from "@headlessui/react";
-import React from "react";
+import React, {useEffect} from "react";
 import { useForm } from "react-hook-form";
 import Button from "./Button";
 import Loading from "./Loading";
@@ -8,32 +8,41 @@ import Textbox from "./Textbox";
 import { useChangePasswordMutation } from "../redux/slices/api/userApiSlice";
 import { toast } from "sonner";
 
+
 const ChangePassword = ({ open, setOpen }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
 
   const [changeUserPassword, { isLoading }] = useChangePasswordMutation();
 
   const handleOnSubmit = async (data) => {
     if (data.password !== data.cpass) {
-      toast.warning("Passwords doesn't match");
+      toast.warning("As senhas não são iguais!");
       return;
     }
     try {
       const res = await changeUserPassword(data).unwrap();
-      toast.success("New User added successfully");
+      toast.success("Senha alterada com sucessso!");
 
       setTimeout(() => {
         setOpen(false);
+        reset();
       }, 1500);
     } catch (err) {
       console.log(err);
       toast.error(err?.data?.message || err.error);
     }
   };
+
+  useEffect(() => {
+    if(!open){
+      reset();
+    }
+  }, [open, reset]);
 
   return (
     <>
@@ -43,28 +52,28 @@ const ChangePassword = ({ open, setOpen }) => {
             as='h2'
             className='text-base font-bold leading-6 text-gray-900 mb-4'
           >
-            Change Passowrd
+            Mudar Senha
           </Dialog.Title>
           <div className='mt-2 flex flex-col gap-6'>
             <Textbox
-              placeholder='New Passowrd'
+              placeholder='Nova Senha'
               type='password'
               name='password'
-              label='New Passowrd'
+              label='Nova Senha'
               className='w-full rounded'
               register={register("password", {
-                required: "New Passowrd is required!",
+                required: "Digite a nova senha!",
               })}
               error={errors.password ? errors.password.message : ""}
             />
             <Textbox
-              placeholder='Confirm New Passowrd'
+              placeholder='Confirme a nova senha'
               type='password'
               name='cpass'
-              label='Confirm New Passowrd'
+              label='Confirme a nova senha'
               className='w-full rounded'
               register={register("cpass", {
-                required: "Confirm New Passowrd is required!",
+                required: "Confirme a nova senha!",
               })}
               error={errors.cpass ? errors.cpass.message : ""}
             />
@@ -79,7 +88,7 @@ const ChangePassword = ({ open, setOpen }) => {
               <Button
                 type='submit'
                 className='bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-700  sm:w-auto'
-                label='Save'
+                label='Salvar'
               />
 
               <button
@@ -87,7 +96,7 @@ const ChangePassword = ({ open, setOpen }) => {
                 className='bg-white px-5 text-sm font-semibold text-gray-900 sm:w-auto'
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                Cancelar
               </button>
             </div>
           )}

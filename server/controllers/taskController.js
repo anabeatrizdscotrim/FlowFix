@@ -6,8 +6,14 @@ import User from "../models/userModel.js";
 const createTask = asyncHandler(async (req, res) => {
   try {
     const { userId } = req.user;
-    const { title, team, stage, date, priority, assets, links, description } =
-      req.body;
+    const { title, team, stage, date, priority, assets, links, description } = req.body;
+
+    const prioridadeMap = {
+      low: "BAIXA",
+      normal: "NORMAL",
+      medium: "MÉDIA",
+      high: "ALTA",
+    }
 
     //alert users of the task
     let text = "Uma nova tarefa foi atribuída a você";
@@ -15,11 +21,11 @@ const createTask = asyncHandler(async (req, res) => {
       text = text + ` e mais ${team?.length - 1} pessoas.`;
     }
 
-    text =
-      text +
-      ` Verifique a prioridade e aja de acordo. A data da tarefa é ${new Date(
-        date
-      ).toDateString()}. Obrigado!`;
+
+    text +=
+      ` A prioridade da tarefa é ${prioridadeMap[priority?.toLowerCase()] || "NORMAL" }, verifique e aja de acordo. A data da tarefa é ${new Date(date).
+        toLocaleDateString("pt-BR")
+    }. Obrigado!`;
 
     const activity = {
       type: "assigned",
@@ -43,7 +49,7 @@ const createTask = asyncHandler(async (req, res) => {
       links: newLinks || [],
       description,
     });
-
+    
     await Notice.create({
       team,
       text,
@@ -81,15 +87,23 @@ const duplicateTask = asyncHandler(async (req, res) => {
       return res.status(404).json({ status: false, message: "Tarefa não encontrada." });
     }
 
+    const prioridadeMap = {
+      low: "BAIXA",
+      normal: "NORMAL",
+      medium: "MÉDIA",
+      high: "ALTA",
+    }
+
     //alert users of the task
     let text = "Uma nova tarefa foi atribuída a você";
     if (task.team?.length > 1) {
       text += ` e mais ${task.team.length - 1} pessoas.`;
     }
 
-    text += ` A prioridade da tarefa é ${
-      task.priority
-    }. Verifique e aja de acordo. A data da tarefa é ${new Date(task.date).toDateString()}. Obrigado!`;
+    text +=
+    ` A prioridade da tarefa é ${prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"}, verifique e aja de acordo. A data da tarefa é ${new Date(task.date)
+      .toLocaleDateString("pt-BR")}. Obrigado!`;
+
 
     const activity = {
       type: "assigned",

@@ -40,6 +40,17 @@ const PRIORITY_PT_BR = {
 const TaskCard = ({ task }) => {
   const { user } = useSelector((state) => state.auth);
   const [open, setOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState(task);
+
+  const refreshTask = async () => {
+    try {
+      const res = await fetch(`/api/tasks/${task._id}`);
+      const updatedTask = await res.json();
+      setCurrentTask(updatedTask);
+    } catch (error) {
+      console.error("Erro ao atualizar task:", error);
+    }
+  };
 
   return (
     <>
@@ -134,7 +145,7 @@ const TaskCard = ({ task }) => {
         </div>
       </div>
 
-      <AddSubTask open={open} setOpen={setOpen} id={task._id} />
+      <AddSubTask open={open} setOpen={setOpen} id={task._id} onSuccess={refreshTask} />
     </>
   );
 };

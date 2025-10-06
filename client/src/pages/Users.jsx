@@ -25,6 +25,7 @@ const Users = () => {
   const { data, isLoading, refetch } = useGetTeamListsQuery({
     search: searchTerm,
   });
+  
   const [deleteUser] = useDeleteUserMutation();
   const [userAction] = useUserActionMutation();
 
@@ -158,7 +159,10 @@ const Users = () => {
             icon={<IoMdAdd className='text-lg' />}
             className='flex flex-row-reverse gap-1 items-center bg-black text-white rounded-md 2xl:py-2.5
              hover:bg-gray-800 transition-colors duration-200 ease-in-out'
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setSelected(null);
+              setOpen(true);
+            }}
           />
         </div>
         <div className='bg-white dark:bg-[#1f1f1f] px-2 md:px-4 py-4 shadow rounded'>

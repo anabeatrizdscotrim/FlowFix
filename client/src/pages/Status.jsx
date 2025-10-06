@@ -6,89 +6,96 @@ import { Loading, Title } from "../components";
 const StatusPage = () => {
   const { data, isLoading } = useGetUserTaskStatusQuery();
 
-  if (isLoading)
-    <div className='py-10'>
-      <Loading />
-    </div>;
+  if (isLoading) {
+    return (
+      <div className="py-10">
+        <Loading />
+      </div>
+    );
+  }
 
-  const TableHeader = () => (
-    <thead className='border-b border-gray-300 dark:border-gray-600'>
-      <tr className='text-black dark:text-white  text-left'>
-        <th className='py-2'>Nome</th>
-        <th className='py-2'>Cargo</th>
-        <th className='py-2'>Progresso</th>
-        <th className='py-2'>Quantidade de Tarefas</th>
-        <th className='py-2'>Total de Tarefas</th>
-      </tr>
-    </thead>
-  );
-
-  const TableRow = ({ user }) => {
+  const UserCard = ({ user }) => {
     const counts = countTasksByStage(user?.tasks);
+    const totalTasks = user?.tasks?.length || 0;
+
+    const calculatePercentage = (count) => {
+      if (totalTasks === 0) return 0;
+      return Math.min((count / totalTasks) * 100, 100);
+    };
+
+    const progress = [
+      { label: "Em Progresso", count: counts.inProgress, color: "bg-yellow-500" },
+      { label: "A Fazer", count: counts.todo, color: "bg-blue-500" },
+      { label: "Concluído", count: counts.completed, color: "bg-green-500" },
+    ];
 
     return (
-      <tr className='border-b border-gray-200 text-gray-600 hover:bg-gray-400/10'>
-        <td className='p-2'>
-          <div className='flex items-center gap-3'>
-            <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-black'>
-              <span className='text-xs md:text-sm text-center'>
-                {getInitials(user.name)}
-              </span>
-            </div>
-            {user.name}
+      <div className="bg-white dark:bg-[#1f1f1f] shadow-md rounded-xl p-5 hover:shadow-lg transition">
+        {/* Cabeçalho */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white font-bold">
+            {getInitials(user.name)}
           </div>
-        </td>
-        <td className='p-2'>{user.title}</td>
-        <td className='p-2'>
-          {
-            <div className='flex items-center gap-2 text-white text-sm'>
-              <p className='px-2 py-1 bg-blue-400 rounded'>
-                {(counts.inProgress * 100).toFixed(1)}%
-              </p>
-              <p className='px-2 py-1 bg-amber-400 rounded'>
-                {(counts.todo * 100).toFixed(1)}%
-              </p>
-              <p className='px-2 py-1 bg-emerald-400 rounded'>
-                {(counts.completed * 100).toFixed(1)}%
-              </p>
-            </div>
-          }
-        </td>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              {user.name}
+            </h2>
+            <p className="text-sm text-gray-500">{user.title}</p>
+          </div>
+        </div>
 
-        <td className='p-2 flex gap-3'>
-          <span>{counts.inProgress}</span> {" | "}
-          <span>{counts.todo}</span>
-          {" | "}
-          <span>{counts.completed}</span>
-        </td>
+        <div className="space-y-2">
+          {progress.map((item, index) => {
+            const percentage = calculatePercentage(item.count);
 
-        <td className='p-2'>
-          <span>{user?.tasks?.length}</span>
-        </td>
-      </tr>
+            return (
+              <div key={index}>
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+                  <span>{item.label}</span>
+
+                  <span>{percentage.toFixed(1)}%</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full">
+                  <div
+                    className={`${item.color} h-2 rounded-full transition-all`}
+                    style={{ width: `${percentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-between mt-4 text-sm text-gray-700 dark:text-gray-200">
+          <span>Total: {totalTasks}</span>
+          <div className="flex gap-2">
+            <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-600 text-xs">
+              {counts.inProgress}
+            </span>
+            <span className="px-2 py-1 rounded bg-blue-100 text-blue-600 text-xs">
+              {counts.todo}
+            </span>
+            <span className="px-2 py-1 rounded bg-green-100 text-green-600 text-xs">
+              {counts.completed}
+            </span>
+          </div>
+        </div>
+      </div>
     );
   };
 
   return (
-    <>
-      <div className='w-full md:px-1 px-0 mb-6'>
-        <div className='flex items-center justify-between mb-8'>
-          <Title title='Status das Tarefas' />
-        </div>
-        <div className='bg-white dark:bg-[#1f1f1f] px-2 md:px-4 py-4 shadow-md rounded'>
-          <div className='overflow-x-auto'>
-            <table className='w-full mb-5'>
-              <TableHeader />
-              <tbody>
-                {data?.map((user, index) => (
-                  <TableRow key={index} user={user} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div className="w-full md:px-1 px-0 mb-6">
+      <div className="flex items-center justify-between mb-8">
+        <Title title="Status das Tarefas" />
       </div>
-    </>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {data?.map((user, index) => (
+          <UserCard key={index} user={user} />
+        ))}
+      </div>
+    </div>
   );
 };
 

@@ -6,6 +6,8 @@ import { Button, Loading, Textbox } from "../components";
 import { useLoginMutation } from "../redux/slices/api/authApiSlice";
 import { setCredentials } from "../redux/slices/authSlice";
 import { useEffect } from "react";
+import React from "react";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Login = () => {
   const { user } = useSelector((state) => state.auth);
@@ -29,6 +31,8 @@ const Login = () => {
       toast.error(err?.data?.message || err.error);
     }
   };
+
+  const [showPassword, setShowPassword] = React.useState(false);
 
   useEffect(() => {
     user && navigate("/dashboard");
@@ -75,15 +79,14 @@ const Login = () => {
                 error={errors.email ? errors.email.message : ""}
               />
               <Textbox
-                placeholder='sua senha'
-                type='password'
-                name='password'
-                label='Senha'
-                className='w-full rounded-full'
-                register={register("password", {
-                  required: "A senha é obrigatória!",
-                })}
-                error={errors.password ? errors.password?.message : ""}
+                placeholder="Sua senha"
+                type="password"
+                name="password"
+                label="Senha"
+                className="w-full"
+                register={register("password", { required: "A senha é obrigatória!" })}
+                error={errors.password ? errors.password.message : ""}
+                isPassword={true}
               />
               <span className='text-sm text-gray-600 hover:text-blue-400 over:underline cursor-pointer'>
                  Esqueceu a senha?

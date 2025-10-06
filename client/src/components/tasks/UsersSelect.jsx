@@ -1,7 +1,7 @@
 import { Listbox, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { BsChevronExpand } from "react-icons/bs";
-import { MdCheck } from "react-icons/md";
+import { MdCheck, MdClose } from "react-icons/md";
 import { useGetTeamListsQuery } from "../../redux/slices/api/userApiSlice.js";
 import { getInitials } from "../../utils/index.js";
 
@@ -9,32 +9,66 @@ export default function UserList({ team, setTeam }) {
   const { data, isLoading } = useGetTeamListsQuery({ search: "" });
   const [selectedUsers, setSelectedUsers] = useState([]);
 
+  const removeUser = (userId) => {
+    const updatedUsers = selectedUsers.filter((user) => user._id !== userId);
+    
+    setSelectedUsers(updatedUsers);
+    setTeam(updatedUsers.map((el) => el._id));
+  };
+
   const handleChange = (el) => {
     setSelectedUsers(el);
     setTeam(el.map((el) => el._id));
   };
 
   useEffect(() => {
-    if (team?.length < 1) {
-      data && setSelectedUsers([data[0]]);
-    } else {
-      setSelectedUsers(team);
+    if (data) {
+      if (team?.length > 0) {
+        const initialUsers = team.map(id => data.find(user => user._id === id)).filter(Boolean);
+        setSelectedUsers(initialUsers);
+      } else if (selectedUsers.length === 0) {
+        setSelectedUsers([]);
+      }
     }
-  }, [isLoading]);
+  }, [isLoading, data, team]);
+
+  if (isLoading) return <p className="text-gray-500">Carregando usuários...</p>;
 
   return (
     <div className=''>
       <p className='text-slate-900 dark:text-gray-500'>Atribuir tarefa para:</p>
       <Listbox
         value={selectedUsers}
-        onChange={(el) => handleChange(el)}
+        onChange={handleChange}
         multiple
       >
         <div className='relative mt-1'>
           <Listbox.Button className='relative w-full cursor-default rounded bg-white pl-3 pr-10 text-left px-3 py-2.5 2xl:py-3 border border-gray-300 dark:border-gray-600 sm:text-sm'>
-            <span className='block truncate'>
-              {selectedUsers?.map((user) => user.name).join(", ")}
-            </span>
+            
+            <div className="flex flex-wrap gap-1 min-h-[28px] pr-8">
+              {selectedUsers.length > 0 ? (
+                selectedUsers.map((user) => (
+                  <span
+                    key={user._id}
+                    className="flex items-center bg-blue-100 text-blue-800 rounded-full px-2 py-1 text-xs font-medium"
+                  >
+                    {user.name}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        removeUser(user._id);
+                      }}
+                      className="ml-1 text-blue-600 hover:text-red-500 rounded-full"
+                    >
+                      <MdClose className="h-4 w-4" />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-400 dark:text-gray-500">Selecione um ou mais responsáveis...</span>
+              )}
+            </div>
 
             <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
               <BsChevronExpand
@@ -43,6 +77,7 @@ export default function UserList({ team, setTeam }) {
               />
             </span>
           </Listbox.Button>
+          
           <Transition
             as={Fragment}
             leave='transition ease-in duration-100'

@@ -9,14 +9,21 @@ import Loading from "../Loading";
 import ModalWrapper from "../ModalWrapper";
 import Textbox from "../Textbox";
 
-const AddSubTask = ({ open, setOpen, id }) => {
+const AddSubTask = ({ open, setOpen, id, onSuccess }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm();
 
   const [addSbTask, { isLoading }] = useCreateSubTaskMutation();
+
+  const handleCancel = () => {
+    reset(); 
+    setOpen(false);
+  };
+  
 
   const handleOnSubmit = async (data) => {
     
@@ -34,7 +41,8 @@ const AddSubTask = ({ open, setOpen, id }) => {
     toast.success(res.message);
 
     setTimeout(() => {
-      setOpen(false);
+      handleCancel();
+      if (onSuccess) onSuccess();
     }, 500);
   } catch (err) {
     console.log(err);
@@ -105,7 +113,7 @@ const AddSubTask = ({ open, setOpen, id }) => {
               <Button
                 type='button'
                 className='bg-red-400 text-sm font-semibold text-white hover:bg-red-200 sm:ml-3 sm:w-auto'
-                onClick={() => setOpen(false)}
+                onClick={handleCancel}
                 label='Cancelar'
               />
             </div>

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   MdDelete,
   MdKeyboardArrowDown,
@@ -51,6 +51,9 @@ const Trash = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm] = useState(searchParams.get("search") || "");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10); 
+
   const { data, isLoading, refetch } = useGetAllTaskQuery({
     strQuery: "",
     isTrashed: "true",
@@ -58,6 +61,22 @@ const Trash = () => {
   });
   const [deleteRestoreTask] = useDeleteRestoreTastMutation();
 
+  const tasks = data?.tasks;
+  
+  const totalPages = Math.ceil((tasks?.length || 0) / rowsPerPage);
+
+  const paginatedTasks = useMemo(() => {
+    const totalRows = tasks?.length || 0;
+    
+    const calculatedTotalPages = Math.ceil(totalRows / rowsPerPage);
+    const page = Math.min(currentPage, calculatedTotalPages || 1); 
+
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    return tasks?.slice(startIndex, endIndex) || [];
+  }, [tasks, currentPage, rowsPerPage]);
+  
   const deleteAllClick = () => {
     setType("deleteAll");
     setMsg("Você quer deletar todas as tarefas?");
@@ -128,11 +147,12 @@ const Trash = () => {
 
   const TableHeader = () => (
     <thead className='border-b border-gray-300 dark:border-gray-600'>
-      <tr className='text-black dark:text-white  text-left'>
+      <tr className='text-black dark:text-white  text-left'>
         <th className='py-2'>Título da Tarefa</th>
         <th className='py-2'>Prioridade</th>
         <th className='py-2'>Status</th>
         <th className='py-2 line-clamp-1'>Modificado em</th>
+        <th className='py-2 w-[100px] text-right pr-4'>Ações</th>
       </tr>
     </thead>
   );
@@ -176,6 +196,33 @@ const Trash = () => {
     </tr>
   );
 
+  const PaginationFooter = () => (
+    <div className='flex justify-between items-center mt-2 pt-2 text-sm'>
+        
+        <span className='text-gray-600 dark:text-gray-400'>
+            Mostrando {Math.min((currentPage - 1) * rowsPerPage + 1, tasks?.length || 0)} a {Math.min(currentPage * rowsPerPage, tasks?.length || 0)} de {tasks?.length || 0} tarefas
+        </span>
+
+        <div className='flex gap-2 items-center'>
+            <span className='text-gray-600 dark:text-gray-400'>Página {currentPage} de {totalPages}</span>
+            
+            <Button
+                label={'Anterior'}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || totalPages === 0}
+                className='px-3 py-1 text-sm bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition'
+            />
+            
+            <Button
+                label={'Próxima'}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className='px-3 py-1 text-sm bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition'
+            />
+        </div>
+    </div>
+  );
+
   return isLoading ? (
     <div className='py-10'>
       <Loading />
@@ -191,13 +238,13 @@ const Trash = () => {
               <Button
                 label='Restaurar tudo'
                 icon={<MdOutlineRestore className='text-lg hidden md:flex' />}
-                className='flex flex-row-reverse gap-1 items-center  text-black text-sm md:text-base rounded-md 2xl:py-2.5'
+                className='flex flex-row-reverse gap-1 items-center  text-black text-sm md:text-base rounded-md 2xl:py-2.5'
                 onClick={() => restoreAllClick()}
               />
               <Button
                 label='Deletar tudo'
                 icon={<MdDelete className='text-lg hidden md:flex' />}
-                className='flex flex-row-reverse gap-1 items-center  text-red-400 text-sm md:text-base rounded-md 2xl:py-2.5'
+                className='flex flex-row-reverse gap-1 items-center  text-red-400 text-sm md:text-base rounded-md 2xl:py-2.5'
                 onClick={() => deleteAllClick()}
               />
             </div>
@@ -209,12 +256,13 @@ const Trash = () => {
               <table className='w-full mb-5'>
                 <TableHeader />
                 <tbody>
-                  {data?.tasks?.map((tk, id) => (
-                    <TableRow key={id} item={tk} />
+                  {paginatedTasks.map((tk) => (
+                    <TableRow key={tk._id} item={tk} />
                   ))}
                 </tbody>
               </table>
             </div>
+            <PaginationFooter />
           </div>
         ) : (
           <div className='w-full flex justify-center py-10'>

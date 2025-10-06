@@ -23,12 +23,12 @@ import { useSelector } from "react-redux";
 const CustomTransition = ({ children }) => (
   <Transition
     as={Fragment}
-    enter='transition ease-out duration-100'
-    enterFrom='transform opacity-0 scale-95'
-    enterTo='transform opacity-100 scale-100'
-    leave='transition ease-in duration-75'
-    leaveFrom='transform opacity-100 scale-100'
-    leaveTo='transform opacity-0 scale-95'
+    enter="transition ease-out duration-100"
+    enterFrom="transform opacity-0 scale-95"
+    enterTo="transform opacity-100 scale-100"
+    leave="transition ease-in duration-75"
+    leaveFrom="transform opacity-100 scale-100"
+    leaveTo="transform opacity-0 scale-95"
   >
     {children}
   </Transition>
@@ -37,83 +37,54 @@ const CustomTransition = ({ children }) => (
 const ChangeTaskActions = ({ _id, stage }) => {
   const [changeStage] = useChangeTaskStageMutation();
 
-  const changeHanlder = async (val) => {
+  const changeHandler = async (val) => {
     try {
-      const data = {
-        id: _id,
-        stage: val,
-      };
+      const data = { id: _id, stage: val };
       const res = await changeStage(data).unwrap();
-
       toast.success(res?.message);
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      setTimeout(() => window.location.reload(), 500);
     } catch (err) {
-      console.log(err);
       toast.error(err?.data?.message || err.error);
     }
   };
 
-  const items = [
-    {
-      label: "Para Fazer",
-      stage: "todo",
-      icon: <TaskColor className='bg-blue-400' />,
-      onClick: () => changeHanlder("todo"),
-    },
-    {
-      label: "Em Progresso",
-      stage: "in progress",
-      icon: <TaskColor className='bg-yellow-400' />,
-      onClick: () => changeHanlder("in progress"),
-    },
-    {
-      label: "Finalizado",
-      stage: "completed",
-      icon: <TaskColor className='bg-green-400' />,
-      onClick: () => changeHanlder("completed"),
-    },
+  const stageItems = [
+    { label: "Para Fazer", stage: "todo", icon: <TaskColor className="bg-blue-400" /> },
+    { label: "Em Progresso", stage: "in progress", icon: <TaskColor className="bg-yellow-400" /> },
+    { label: "Finalizado", stage: "completed", icon: <TaskColor className="bg-green-400" /> },
   ];
 
   return (
-    <>
-      <Menu as='div' className='relative inline-block text-left'>
-        <Menu.Button
-          className={clsx(
-            "inline-flex w-full items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300"
-          )}
-        >
-          <FaExchangeAlt />
-          <span>Mudar Status</span>
-        </Menu.Button>
+    <Menu as="div" className="relative inline-block text-left w-full">
+      <Menu.Button className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+        <FaExchangeAlt />
+        <span>Mudar Status</span>
+      </Menu.Button>
 
-        <CustomTransition>
-          <Menu.Items className='absolute p-4 left-0 mt-2 w-40 divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none'>
-            <div className='px-1 py-1 space-y-2'>
-              {items.map((el) => (
-                <Menu.Item key={el.label} disabled={stage === el.stage}>
-                  {({ active }) => (
-                    <button
-                      disabled={stage === el.stage}
-                      onClick={el?.onClick}
-                      className={clsx(
-                        active ? "bg-gray-200 text-gray-900" : "text-gray-900",
-                        "group flex gap-2 w-full items-center rounded-md px-2 py-2 text-sm disabled:opacity-50"
-                      )}
-                    >
-                      {el.icon}
-                      {el.label}
-                    </button>
-                  )}
-                </Menu.Item>
-              ))}
-            </div>
-          </Menu.Items>
-        </CustomTransition>
-      </Menu>
-    </>
+      <CustomTransition>
+        <Menu.Items className="absolute left-0 mt-2 w-40 rounded-md bg-white shadow-lg ring-1 ring-black/5 z-50 isolate focus:outline-none">
+          <div className="px-1 py-1 space-y-1">
+            {stageItems.map((el) => (
+              <Menu.Item key={el.label} disabled={stage === el.stage}>
+                {({ active }) => (
+                  <button
+                    disabled={stage === el.stage}
+                    onClick={() => changeHandler(el.stage)}
+                    className={clsx(
+                      active ? "bg-gray-200 text-gray-900" : "text-gray-900",
+                      "flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm disabled:opacity-50"
+                    )}
+                  >
+                    {el.icon}
+                    {el.label}
+                  </button>
+                )}
+              </Menu.Item>
+            ))}
+          </div>
+        </Menu.Items>
+      </CustomTransition>
+    </Menu>
   );
 };
 
@@ -124,143 +95,100 @@ export default function TaskDialog({ task }) {
   const [openDialog, setOpenDialog] = useState(false);
 
   const navigate = useNavigate();
-
   const [deleteTask] = useTrashTastMutation();
   const [duplicateTask] = useDuplicateTaskMutation();
 
-  const deleteClicks = () => {
-    setOpenDialog(true);
-  };
-
   const deleteHandler = async () => {
     try {
-      const res = await deleteTask({
-        id: task._id,
-        isTrashed: "trash",
-      }).unwrap();
-
+      const res = await deleteTask({ id: task._id, isTrashed: "trash" }).unwrap();
       toast.success(res?.message);
-
       setTimeout(() => {
         setOpenDialog(false);
         window.location.reload();
       }, 500);
     } catch (err) {
-      console.log(err);
       toast.error(err?.data?.message || err.error);
     }
   };
 
-  const duplicateHanlder = async () => {
+  const duplicateHandler = async () => {
     try {
       const res = await duplicateTask(task._id).unwrap();
-
       toast.success(res?.message);
-
       setTimeout(() => {
         setOpenDialog(false);
         window.location.reload();
       }, 500);
     } catch (err) {
-      console.log(err);
       toast.error(err?.data?.message || err.error);
     }
   };
 
-  const items = [
-    {
-      label: "Abrir Tarefa",
-      icon: <AiTwotoneFolderOpen className='mr-2 h-5 w-5' aria-hidden='true' />,
-      onClick: () => navigate(`/task/${task._id}`),
-    },
-    {
-      label: "Editar",
-      icon: <MdOutlineEdit className='mr-2 h-5 w-5' aria-hidden='true' />,
-      onClick: () => setOpenEdit(true),
-    },
-    {
-      label: "Adicionar Subtarefa",
-      icon: <MdAdd className='mr-2 h-5 w-5' aria-hidden='true' />,
-      onClick: () => setOpen(true),
-    },
-    {
-      label: "Duplicar Tarefa",
-      icon: <HiDuplicate className='mr-2 h-5 w-5' aria-hidden='true' />,
-      onClick: () => duplicateHanlder(),
-    },
+  const menuItems = [
+    { label: "Abrir Tarefa", icon: <AiTwotoneFolderOpen className="mr-2 h-5 w-5" />, onClick: () => navigate(`/task/${task._id}`) },
+    { label: "Editar", icon: <MdOutlineEdit className="mr-2 h-5 w-5" />, onClick: () => setOpenEdit(true) },
+    { label: "Adicionar Subtarefa", icon: <MdAdd className="mr-2 h-5 w-5" />, onClick: () => setOpen(true) },
+    { label: "Duplicar Tarefa", icon: <HiDuplicate className="mr-2 h-5 w-5" />, onClick: duplicateHandler },
   ];
 
   return (
     <>
-      <div className=''>
-        <Menu as='div' className='relative inline-block text-left'>
-          <Menu.Button className='inline-flex w-full justify-center rounded-md px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300'>
-            <BsThreeDots />
-          </Menu.Button>
+      <Menu as="div" className="relative inline-block text-left">
+        <Menu.Button className="inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+          <BsThreeDots />
+        </Menu.Button>
 
-          <CustomTransition>
-            <Menu.Items className='absolute p-4 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none'>
-              <div className='px-1 py-1 space-y-2'>
-                {items.map((el, index) => (
-                  <Menu.Item key={el.label}>
-                    {({ active }) => (
-                      <button
-                        disabled={index === 0 ? false : !user.isAdmin}
-                        onClick={el?.onClick}
-                        className={`${
-                          active ? "bg-black text-white" : "text-gray-900"
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
-                      >
-                        {el.icon}
-                        {el.label}
-                      </button>
-                    )}
-                  </Menu.Item>
-                ))}
-              </div>
-
-              <div className='px-1 py-1'>
-                <Menu.Item>
-                  <ChangeTaskActions id={task._id} {...task} />
-                </Menu.Item>
-              </div>
-
-              <div className='px-1 py-1'>
-                <Menu.Item>
+        <CustomTransition>
+          <Menu.Items className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black/5 z-50 isolate focus:outline-none">
+            <div className="px-1 py-1 space-y-1">
+              {menuItems.map((el, index) => (
+                <Menu.Item key={el.label}>
                   {({ active }) => (
                     <button
-                      disabled={!user.isAdmin}
-                      onClick={() => deleteClicks()}
-                      className={`${
-                        active ? "bg-red-100 text-red-400" : "text-red-400"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400`}
+                      disabled={index !== 0 && !user.isAdmin}
+                      onClick={el.onClick}
+                      className={clsx(
+                        active ? "bg-black text-white" : "text-gray-900",
+                        "flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400"
+                      )}
                     >
-                      <RiDeleteBin6Line
-                        className='mr-2 h-5 w-5 text-red-400'
-                        aria-hidden='true'
-                      />
-                      Deletar
+                      {el.icon}
+                      {el.label}
                     </button>
                   )}
                 </Menu.Item>
-              </div>
-            </Menu.Items>
-          </CustomTransition>
-        </Menu>
-      </div>
+              ))}
+            </div>
 
-      <AddTask
-        open={openEdit}
-        setOpen={setOpenEdit}
-        task={task}
-        key={new Date().getTime()}
-      />
+            <div className="px-1 py-1">
+              <ChangeTaskActions id={task._id} {...task} />
+            </div>
+
+            <div className="px-1 py-1">
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    disabled={!user.isAdmin}
+                    onClick={() => setOpenDialog(true)}
+                    className={clsx(
+                      active ? "bg-red-100 text-red-500" : "text-red-500",
+                      "flex w-full items-center rounded-md px-2 py-2 text-sm disabled:text-gray-400"
+                    )}
+                  >
+                    <RiDeleteBin6Line className="mr-2 h-5 w-5 text-red-500" />
+                    Deletar
+                  </button>
+                )}
+              </Menu.Item>
+            </div>
+          </Menu.Items>
+        </CustomTransition>
+      </Menu>
+
+      {/* Modais */}
+      <AddTask open={openEdit} setOpen={setOpenEdit} task={task} key={new Date().getTime()} />
       <AddSubTask open={open} setOpen={setOpen} id={task._id} />
-      <ConfirmatioDialog
-        open={openDialog}
-        setOpen={setOpenDialog}
-        onClick={deleteHandler}
-      />
+      <ConfirmatioDialog open={openDialog} setOpen={setOpenDialog} onClick={deleteHandler} />
     </>
   );
 }

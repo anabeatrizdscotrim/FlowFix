@@ -5,7 +5,7 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useForm } from "react-hook-form";
 import { BiImages } from "react-icons/bi";
 import { toast } from "sonner";
@@ -87,10 +87,11 @@ const AddTask = ({ open, setOpen, task }) => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({ defaultValues });
 
   const [stage, setStage] = useState(task?.stage?.toUpperCase() || LISTS[0]);
-  const [team, setTeam] = useState(task?.team || []);
+  const [team, setTeam] = useState(task?.team?.length > 0 ? task.team : []);
   const [priority, setPriority] = useState(
     task?.priority?.toUpperCase() || PRIORIRY[2]
   );
@@ -101,11 +102,47 @@ const AddTask = ({ open, setOpen, task }) => {
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const URLS = task?.assets ? [...task.assets] : [];
 
+  const resetForm = () => {
+  reset(defaultValues); 
+  
+  setTeam([]);
+  setStage(LISTS[0]);
+  setPriority(PRIORIRY[2]);
+  setAssets([]);
+  
+  uploadedFileURLs.length = 0; 
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    setOpen(false);
+  }
+
+
+  useEffect(() => {
+    if (task) {
+      reset({
+        ...defaultValues,
+        title: task.title,
+        date: dateFormatter(task.date),
+      });
+      setTeam(task.team || []);
+      setStage(task.stage?.toUpperCase() || LISTS[0]); 
+      setPriority(task.priority?.toUpperCase() || PRIORIRY[2]);
+    } else {
+        resetForm();
+    }
+  }, [open, task, reset]);
+
   const handleOnSubmit = async (data) => {
+
+     if (team.length === 0) {
+      toast.error("É obrigatório selecionar pelo menos um responsável pela tarefa.");
+      return;
+    }
 
     const [year, month, day] = data.date.split('-');
     const selectedDate = new Date(year, month - 1, day); 
-
 
     for (const file of assets) {
       setUploading(true);

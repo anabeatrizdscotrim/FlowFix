@@ -170,13 +170,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const { userId, isAdmin } = req.user;
   const { _id } = req.body;
 
-  const id =
-    isAdmin && userId === _id
-      ? userId
-      : isAdmin && userId !== _id
-      ? _id
-      : userId;
-
+  const id = _id || userId;
   const user = await User.findById(id);
 
   if (user) {
@@ -184,10 +178,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     // user.email = req.body.email || user.email;
     user.title = req.body.title || user.title;
     user.role = req.body.role || user.role;
+    user.isAdmin = req.body.isAdmin ?? user.isAdmin;
 
     const updatedUser = await user.save();
-
-    user.password = undefined;
+    updatedUser.password = undefined;
 
     res.status(201).json({
       status: true,
@@ -226,11 +220,10 @@ const activateUserProfile = asyncHandler(async (req, res) => {
 const changeUserPassword = asyncHandler(async (req, res) => {
   const { userId } = req.user;
 
-  // Remove this condition
   if (userId === "65ff94c7bb2de638d0c73f63") {
     return res.status(404).json({
       status: false,
-      message: "This is a test user. You can not chnage password. Thank you!!!",
+      message: "Usuário teste, senha não pode ser alterada",
     });
   }
 

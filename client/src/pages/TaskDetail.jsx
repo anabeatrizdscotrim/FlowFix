@@ -209,7 +209,7 @@ const Activities = ({ activity, id, refetch }) => {
             <div key={item.value} className='flex gap-2 items-center'>
               <input
                 type='checkbox'
-                className='w-4 h-4'
+                className='w-4 h-4 border-black accent-black'
                 checked={selected === item.value}
                 onChange={() => setSelected(item.value)}
               />

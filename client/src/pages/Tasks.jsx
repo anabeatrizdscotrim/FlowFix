@@ -68,16 +68,16 @@ const Tasks = () => {
             <div className='w-full flex justify-between gap-4 md:gap-x-12 py-4'>
               <TaskTitle label='Para Fazer' 
               className={TASK_TYPE.todo} 
-              cardClass='bg-blue-100'/>
+              cardClass='bg-white'/>
               <TaskTitle
                 label='Em progresso'
                 className={TASK_TYPE["in progress"]}
-                cardClass='bg-yellow-100'
+                cardClass='bg-white'
               />
               <TaskTitle 
               label='Finalizado' 
               className={TASK_TYPE.completed}
-              cardClass='bg-green-100' />
+              cardClass='bg-white' />
             </div>
           )}
 
