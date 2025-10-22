@@ -4,11 +4,14 @@ import {
   createTask,
   dashboardStatistics,
   deleteRestoreTask,
+  deleteSubTask,
+  deleteTaskActivity,
   duplicateTask,
   getTask,
   getTasks,
   postTaskActivity,
   trashTask,
+  updateSubTask,
   updateSubTaskStage,
   updateTask,
   updateTaskStage,
@@ -28,18 +31,13 @@ router.get("/:id", protectRoute, getTask);
 router.put("/create-subtask/:id", protectRoute, isAdminRoute, createSubTask);
 router.put("/update/:id", protectRoute, isAdminRoute, updateTask);
 router.put("/change-stage/:id", protectRoute, updateTaskStage);
-router.put(
-  "/change-status/:taskId/:subTaskId",
-  protectRoute,
-  updateSubTaskStage
-);
+router.put("/change-status/:taskId/:subTaskId", protectRoute, updateSubTaskStage);
 router.put("/:id", protectRoute, isAdminRoute, trashTask);
+router.patch("/subtasks/:taskId/:subTaskId", protectRoute, isAdminRoute, updateSubTask);
 
-router.delete(
-  "/delete-restore/:id?",
-  protectRoute,
-  isAdminRoute,
-  deleteRestoreTask
-);
+
+router.delete("/delete-restore/:id?", protectRoute, isAdminRoute, deleteRestoreTask);
+router.delete("/activity/:taskId/:activityId", protectRoute, deleteTaskActivity);
+router.delete("/:taskId/subtasks/:subTaskId", protectRoute, isAdminRoute, deleteSubTask);
 
 export default router;

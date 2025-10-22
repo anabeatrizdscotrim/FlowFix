@@ -6,7 +6,7 @@ const API_URL = "http://localhost:8800/api";
 
 const baseQuery = fetchBaseQuery({ 
   baseUrl: API_URL, 
-  prepareHearders: (headers, {getState}) => {
+  prepareHeaders: (headers, {getState}) => {
 
     const token = getState().auth.token;
 

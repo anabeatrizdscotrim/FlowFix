@@ -2,11 +2,22 @@ import asyncHandler from "express-async-handler";
 import Notice from "../models/notis.js";
 import User from "../models/userModel.js";
 import createJWT from "../utils/index.js";
+import Task from "../models/taskModel.js"
 
 // POST request - login user
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
+  // Validação de formato de e-mail
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      status: false,
+      message: "Formato de e-mail inválido.",
+    });
+  }
+
+  // Verifica se o usuário existe
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -18,7 +29,8 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!user?.isActive) {
     return res.status(401).json({
       status: false,
-      message: "A conta do usuário foi desativada, entre em contato com o administrador.",
+      message:
+        "A conta do usuário foi desativada. Entre em contato com o administrador.",
     });
   }
 
@@ -26,9 +38,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (user && isMatch) {
     createJWT(res, user._id);
-
     user.password = undefined;
-
     res.status(200).json(user);
   } else {
     return res
@@ -41,12 +51,34 @@ const loginUser = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, isAdmin, role, title } = req.body;
 
-  const userExists = await User.findOne({ email });
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      status: false,
+      message: "Nome, email e senha são obrigatórios.",
+    });
+  }
 
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      status: false,
+      message: "Formato de email inválido.",
+    });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({
+      status: false,
+      message: "A senha deve ter pelo menos 6 caracteres.",
+    });
+  }
+
+  const userExists = await User.findOne({ email });
   if (userExists) {
-    return res
-      .status(400)
-      .json({ status: false, message: "O endereço de e-mail já existe." });
+    return res.status(400).json({
+      status: false,
+      message: "O endereço de e-mail já existe.",
+    });
   }
 
   const user = await User.create({
@@ -59,15 +91,20 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    isAdmin ? createJWT(res, user._id) : null;
+    if (isAdmin) createJWT(res, user._id);
 
     user.password = undefined;
 
-    res.status(201).json(user);
+    return res.status(201).json({
+      status: true,
+      message: "Usuário registrado com sucesso.",
+      user,
+    });
   } else {
-    return res
-      .status(400)
-      .json({ status: false, message: "Dados de usuário inválidos" });
+    return res.status(400).json({
+      status: false,
+      message: "Dados de usuário inválidos.",
+    });
   }
 });
 
@@ -139,6 +176,7 @@ const getUserTaskStatus = asyncHandler(async (req, res) => {
 
   res.status(200).json(tasks);
 });
+
 
 // @GET  - get user notifications
 const markNotificationRead = asyncHandler(async (req, res) => {
@@ -219,31 +257,48 @@ const activateUserProfile = asyncHandler(async (req, res) => {
 
 const changeUserPassword = asyncHandler(async (req, res) => {
   const { userId } = req.user;
+  const { password } = req.body;
 
   if (userId === "65ff94c7bb2de638d0c73f63") {
-    return res.status(404).json({
+    return res.status(403).json({
       status: false,
-      message: "Usuário teste, senha não pode ser alterada",
+      message: "Usuário teste — senha não pode ser alterada.",
+    });
+  }
+
+  if (!password) {
+    return res.status(400).json({
+      status: false,
+      message: "A nova senha é obrigatória.",
+    });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({
+      status: false,
+      message: "A senha deve ter pelo menos 6 caracteres.",
     });
   }
 
   const user = await User.findById(userId);
 
   if (user) {
-    user.password = req.body.password;
-
+    user.password = password;
     await user.save();
-
     user.password = undefined;
 
-    res.status(201).json({
+    return res.status(200).json({
       status: true,
-      message: `Senha alterada com sucesso.`,
+      message: "Senha alterada com sucesso.",
     });
   } else {
-    res.status(404).json({ status: false, message: "Usuário não encontrado." });
+    return res.status(404).json({
+      status: false,
+      message: "Usuário não encontrado.",
+    });
   }
 });
+
 
 // DELETE - delete user account
 const deleteUserProfile = asyncHandler(async (req, res) => {
@@ -253,6 +308,30 @@ const deleteUserProfile = asyncHandler(async (req, res) => {
 
   res.status(200).json({ status: true, message: "Usuário removido com sucesso." });
 });
+
+
+/*
+const checkDisponibility = asyncHandler(async(req, res) => {
+  const {id} = req.params;
+
+  const user = await User.findById(id);
+
+  const tasks = await Task.find({userId: id})
+
+  if (tasks.every(t => t.status === "completed")){
+    user.available = true
+    await user.save()
+    res.status(200).json({status: true, message: "Usuário disponível"})
+  } else {
+    user.available = false
+    await user.save()
+    return res.status(400).json({
+      status: false,
+      message: "Usuário indisponível",
+    });
+  }
+})*/
+
 
 export {
   activateUserProfile,
@@ -266,4 +345,8 @@ export {
   markNotificationRead,
   registerUser,
   updateUserProfile,
+  //checkDisponibility,
 };
+
+
+

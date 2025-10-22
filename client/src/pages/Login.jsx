@@ -67,30 +67,52 @@ const Login = () => {
               </p>
             </div>
             <div className='flex flex-col gap-y-5'>
-              <Textbox
-                placeholder='email@example.com'
-                type='email'
-                name='email'
-                label='E-mail'
-                className='w-full rounded-full'
-                register={register("email", {
-                  required: "O endereço de e-mail é obrigatório!",
-                })}
-                error={errors.email ? errors.email.message : ""}
-              />
+             <div className="flex flex-col gap-y-5 relative">
+            <Textbox
+              placeholder="email@example.com"
+              type="email"
+              name="email"
+              label="E-mail"
+              className="w-full rounded-full"
+              register={register("email", {
+                required: "O endereço de e-mail é obrigatório!",
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Formato de e-mail inválido!",
+                },
+              })}
+              error={errors.email ? errors.email.message : ""}
+            />
+
+            <div className="relative">
               <Textbox
                 placeholder="Sua senha"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 label="Senha"
                 className="w-full"
-                register={register("password", { required: "A senha é obrigatória!" })}
+                register={register("password", {
+                  required: "A senha é obrigatória!",
+                  minLength: {
+                    value: 6,
+                    message: "A senha deve ter pelo menos 6 caracteres!",
+                  },
+                })}
                 error={errors.password ? errors.password.message : ""}
-                isPassword={true}
               />
-              <span className='text-sm text-gray-600 hover:text-blue-400 over:underline cursor-pointer'>
-                 Esqueceu a senha?
-              </span>
+
+              <div
+                className="absolute right-3 top-9 cursor-pointer text-gray-500"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+              </div>
+            </div>
+          </div>
+
+          <span className="text-sm text-gray-600 hover:text-blue-400 hover:underline cursor-pointer">
+            Esqueceu a senha?
+          </span>
             </div>
             {isLoading ? (
               <Loading />
@@ -99,6 +121,7 @@ const Login = () => {
                 type='submit'
                 label='Login'
                 className='w-full h-10 bg-blue-400 text-white rounded-full'
+                disabled={Object.keys(errors).length > 0}
               />
             )}
           </form>

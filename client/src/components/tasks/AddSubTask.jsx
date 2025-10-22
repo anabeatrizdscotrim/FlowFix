@@ -1,29 +1,41 @@
 import { Dialog } from "@headlessui/react";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { useCreateSubTaskMutation } from "../../redux/slices/api/taskApiSlice";
+import { useCreateSubTaskMutation, useUpdateSubTaskMutation } from "../../redux/slices/api/taskApiSlice";
 import Button from "../Button";
 import Loading from "../Loading";
 import ModalWrapper from "../ModalWrapper";
 import Textbox from "../Textbox";
 
-const AddSubTask = ({ open, setOpen, id, onSuccess }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+const AddSubTask = ({ open, setOpen, id, subTask, onSuccess }) => {
+
+  const defaultValues = {
+    title: subTask?.title || "",
+    date: subTask?.date ? subTask.date.split("T")[0] : "",
+    tag: subTask?.tag || "",
+  };
+
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm({ defaultValues });
 
   const [addSbTask, { isLoading }] = useCreateSubTaskMutation();
+  const [updateSubTask, {isLoading: isUpdating}] = useUpdateSubTaskMutation();
+
+ useEffect(() => {
+    if (subTask) {
+      setValue("title", subTask.title);
+      setValue("date", subTask.date ? subTask.date.split("T")[0] : "");
+      setValue("tag", subTask.tag || "");
+    } else {
+      reset(defaultValues);
+    }
+  }, [subTask, open, reset, setValue]);
 
   const handleCancel = () => {
-    reset(); 
+    reset(defaultValues);
     setOpen(false);
   };
-  
 
   const handleOnSubmit = async (data) => {
     
@@ -36,30 +48,34 @@ const AddSubTask = ({ open, setOpen, id, onSuccess }) => {
       date: selectedDate,
     };
 
-    const res = await addSbTask({ data: newData, id }).unwrap();
+    const res = subTask
+    ? await updateSubTask({
+        taskId: id,
+        subTaskId: subTask._id,
+        title: newData.title,
+        tag: newData.tag,
+        date: newData.date,
+      }).unwrap()
+    : await addSbTask({ data: newData, id }).unwrap();
+
 
     toast.success(res.message);
-
-    setTimeout(() => {
+      onSuccess?.();
       handleCancel();
       if (onSuccess) onSuccess();
-    }, 500);
-  } catch (err) {
-    console.log(err);
-    toast.error(err?.data?.message || err.error);
-  }
+    } catch (err) {
+      console.log(err);
+      toast.error(err?.data?.message || err.error);
+    }
   };
 
   return (
     <>
       <ModalWrapper open={open} setOpen={setOpen}>
         <form onSubmit={handleSubmit(handleOnSubmit)} className=''>
-          <Dialog.Title
-            as='h2'
-            className='text-base font-bold leading-6 text-gray-900 mb-4'
-          >
-            ADICIONAR SUBTAREFA
-          </Dialog.Title>
+           <Dialog.Title className="text-base font-bold leading-6 text-gray-900 mb-4">
+              {subTask ? "EDITAR SUBTAREFA" : "ADICIONAR SUBTAREFA"}
+           </Dialog.Title>
           <div className='mt-2 flex flex-col gap-6'>
             <Textbox
               placeholder='Título da Subtarefa'
@@ -98,7 +114,7 @@ const AddSubTask = ({ open, setOpen, id, onSuccess }) => {
               />
             </div>
           </div>
-          {isLoading ? (
+          {(isLoading || isUpdating) ? (
             <div className='mt-8'>
               <Loading />
             </div>
@@ -107,7 +123,7 @@ const AddSubTask = ({ open, setOpen, id, onSuccess }) => {
               <Button
                 type='submit'
                 className='bg-blue-400 text-sm font-semibold text-white hover:bg-blue-200 sm:ml-3 sm:w-auto'
-                label='Adicionar'
+                label={subTask ? "Salvar" : "Adicionar"}
               />
 
               <Button

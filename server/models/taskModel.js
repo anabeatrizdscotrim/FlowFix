@@ -22,9 +22,7 @@ const taskSchema = new Schema(
           enum: [
             "assigned",
             "started",
-            "in progress",
             "bug",
-            "completed",
             "commented",
           ],
         },

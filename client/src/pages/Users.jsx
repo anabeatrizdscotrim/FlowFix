@@ -95,7 +95,7 @@ const Users = () => {
         <th className='py-2'>Cargo</th>
         <th className='py-2'>Email</th>
         <th className='py-2'>Tipo de Usuário</th>
-        <th className='py-2'>Ativo</th>
+        <th className='py-2'>Status</th>
       </tr>
     </thead>
   );

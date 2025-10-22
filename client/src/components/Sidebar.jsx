@@ -4,7 +4,6 @@ import { FaUsers } from "react-icons/fa";
 import {
   MdDashboard,
   MdOutlinePendingActions,
-  MdSettings,
   MdTaskAlt,
 } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -103,13 +102,6 @@ const Sidebar = () => {
         {sidebarLinks.map((link) => (
           <NavLink el={link} key={link.label} />
         ))}
-      </div>
-
-      <div className=''>
-        <button className='w-full flex gap-2 p-2 items-center text-lg text-gray-800 dark:text-white'>
-          <MdSettings />
-          <span>Configurações</span>
-        </button>
       </div>
     </div>
   );

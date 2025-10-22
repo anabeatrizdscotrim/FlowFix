@@ -45,7 +45,7 @@ const createTask = asyncHandler(async (req, res) => {
       date,
       priority: priority.toLowerCase(),
       assets,
-      activities: activity,
+      activities: [activity],
       links: newLinks || [],
       description,
     });
@@ -60,14 +60,14 @@ const createTask = asyncHandler(async (req, res) => {
       _id: team,
     });
 
-    if (users) {
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i];
+    const activeUsers = users.filter(user => user.isActive === true)
 
-        await User.findByIdAndUpdate(user._id, { $push: { tasks: task._id } });
-      }
+    for (let i = 0; i < activeUsers.length; i++) {
+      const user = activeUsers[i];
+
+      await User.findByIdAndUpdate(user._id, { $push: { tasks: task._id } });
     }
-
+  
     res
       .status(200)
       .json({ status: true, task, message: "Tarefa criada com sucesso." });
@@ -165,7 +165,7 @@ const updateTask = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ status: true, message: "Tarefa duplicada com sucesso." });
+      .json({ status: true, message: "Tarefa atualizada com sucesso." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -245,6 +245,34 @@ const createSubTask = asyncHandler(async (req, res) => {
   }
 });
 
+const updateSubTask = asyncHandler(async (req, res) => {
+  const { taskId, subTaskId } = req.params;
+  const { title, tag, date } = req.body;
+
+  try {
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ status: false, message: "Tarefa não encontrada" });
+    }
+
+    const subTask = task.subTasks.id(subTaskId);
+    if (!subTask) {
+      return res.status(404).json({ status: false, message: "Subtarefa não encontrada " });
+    }
+
+    if (title !== undefined) subTask.title = title;
+    if (tag !== undefined) subTask.tag = tag;
+    if(date !== undefined) subTask.date = date;
+
+    await task.save();
+
+    res.status(200).json({ status: true, message: "Subtarefa atualizada com sucesso.", subTask });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ status: false, message: error.message });
+  }
+});
+
 const getTasks = asyncHandler(async (req, res) => {
   const { userId, isAdmin } = req.user;
   const { stage, isTrashed, search } = req.query;
@@ -314,25 +342,58 @@ const postTaskActivity = asyncHandler(async (req, res) => {
   const { userId } = req.user;
   const { type, activity } = req.body;
 
-  try {
-    const task = await Task.findById(id);
 
-    const data = {
-      type,
-      activity,
-      by: userId,
-    };
-    task.activities.push(data);
+  const task = await Task.findById(id);
 
-    await task.save();
-
-    res
-      .status(200)
-      .json({ status: true, message: "Atividade publicada com sucesso." });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+  if (!task) {
+    res.status(404);
+    throw new Error("Tarefa não encontrada");
   }
+
+  const data = { type, activity, by: userId };
+  task.activities.push(data);
+  await task.save();
+
+  if (type === "bug" || activity.toLowerCase().includes("bug")) {
+    
+    const user = await User.findById(userId).select("name");
+    const admins = await User.find({ role: "admin" });
+
+     console.log("Admins alertados:", admins.map(a => a._id));
+
+    if (admins.length > 0) {
+      await Notice.create({
+        team: admins.map(a => a._id),
+        text: `${user.name} adicionou um problema na tarefa "${task.title}": ${activity}`,
+        task: task._id,
+        notiType: "alert",
+      });
+    }
+  }
+
+  res.status(200).json({ message: "Atividade adicionada com sucesso", task });
 });
+
+// remove uma atividade
+const deleteTaskActivity = asyncHandler(async (req, res) => {
+  const { taskId, activityId } = req.params;
+
+  const task = await Task.findById(taskId);
+
+  if (!task) {
+    return res.status(404).json({ status: false, message: "Tarefa não encontrada" });
+  }
+
+  const newActivities = task.activities.filter(
+    (activity) => activity._id.toString() !== activityId
+  );
+
+  task.activities = newActivities;
+  await task.save();
+
+  res.status(200).json({ status: true, message: "Atividade removida com sucesso", task });
+});
+
 
 const trashTask = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -384,11 +445,29 @@ const deleteRestoreTask = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteSubTask = asyncHandler(async (req, res) => {
+  const { taskId, subTaskId } = req.params;
+
+  try {
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ status: false, message: "Tarefa não encontrada" });
+    }
+
+    task.subTasks = task.subTasks.filter(sub => sub._id.toString() !== subTaskId);
+    await task.save();
+
+    res.status(200).json({ status: true, message: "Subtarefa excluída com sucesso." });
+  } catch (error) {
+    return res.status(400).json({ status: false, message: error.message });
+  }
+});
+
 const dashboardStatistics = asyncHandler(async (req, res) => {
   try {
     const { userId, isAdmin } = req.user;
 
-    // Fetch all tasks from the database
+    // fetch all tasks from the database
     const allTasks = isAdmin
       ? await Task.find({
           isTrashed: false,
@@ -469,4 +548,7 @@ export {
   updateSubTaskStage,
   updateTask,
   updateTaskStage,
+  deleteTaskActivity,
+  deleteSubTask,
+  updateSubTask,
 };

@@ -4,6 +4,7 @@ import { BsChevronExpand } from "react-icons/bs";
 import { MdCheck, MdClose } from "react-icons/md";
 import { useGetTeamListsQuery } from "../../redux/slices/api/userApiSlice.js";
 import { getInitials } from "../../utils/index.js";
+import User from "../../../../server/models/userModel.js";
 
 export default function UserList({ team, setTeam }) {
   const { data, isLoading } = useGetTeamListsQuery({ search: "" });
@@ -88,14 +89,19 @@ export default function UserList({ team, setTeam }) {
               {data?.map((user, userIdx) => (
                 <Listbox.Option
                   key={userIdx}
-                  className={({ active }) =>
+                  disabled={!user.isActive}
+                  className={({ active, disabled }) =>
                     `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                      active ? "bg-gray-100 text-black" : "text-gray-900"
+                      disabled 
+                      ? "text-gray-400 cursor-not-allowed"
+                      : active 
+                      ? "bg-gray-100 text-black"
+                      : "text-gray-900"
                     }`
                   }
                   value={user}
                 >
-                  {({ selected }) => (
+                  {({ selected, disabled }) => (
                     <>
                       <div
                         className={`flex items-center gap-2 truncate ${
@@ -111,13 +117,13 @@ export default function UserList({ team, setTeam }) {
                             {getInitials(user.name)}
                           </span>
                         </div>
-                        <span>{user.name}</span>
+                        <span>{user.name}{!user.isActive && "(Inativo)"}</span>
                       </div>
-                      {selected ? (
+                      {selected && !disabled && (
                         <span className='absolute inset-y-0 left-0 flex items-center pl-3 text-green-400'>
                           <MdCheck className='h-5 w-5' aria-hidden='true' />
                         </span>
-                      ) : null}
+                      )}
                     </>
                   )}
                 </Listbox.Option>

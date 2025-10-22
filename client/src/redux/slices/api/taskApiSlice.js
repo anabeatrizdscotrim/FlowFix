@@ -1,3 +1,4 @@
+import { deleteTaskActivity } from "../../../../../server/controllers/taskController";
 import { TASKS_URL } from "../../../utils/contants";
 import { apiSlice } from "../apiSlice";
 
@@ -55,6 +56,15 @@ export const postApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    updateSubTask: builder.mutation({
+      query: ({ taskId, subTaskId, title, tag, date }) => ({
+        url: `${TASKS_URL}/subtasks/${taskId}/${subTaskId}`, 
+        method: 'PATCH',
+        body: { title, tag, date },
+        credentials: "include",
+      }),
+    }),
+
     postTaskActivity: builder.mutation({
       query: ({ data, id }) => ({
         url: `${TASKS_URL}/activity/${id}`,
@@ -105,6 +115,22 @@ export const postApiSlice = apiSlice.injectEndpoints({
         credentials: "include",
       }),
     }),
+
+     deleteTaskActivity: builder.mutation({
+      query: ({ taskId, activityId }) => ({
+        url: `/task/activity/${taskId}/${activityId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+    }),
+
+    deleteSubTask: builder.mutation({
+      query: ({ taskId, subTaskId }) => ({
+        url: `/task/${taskId}/subtasks/${subTaskId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+    }),
   }),
 });
 
@@ -121,4 +147,7 @@ export const {
   useGetDasboardStatsQuery,
   useChangeTaskStageMutation,
   useChangeSubTaskStatusMutation,
+  useDeleteTaskActivityMutation,
+  useDeleteSubTaskMutation,
+  useUpdateSubTaskMutation,
 } = postApiSlice;

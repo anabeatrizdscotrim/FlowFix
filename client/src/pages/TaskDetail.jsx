@@ -8,13 +8,16 @@ import {
   MdKeyboardArrowUp,
   MdKeyboardDoubleArrowUp,
   MdTaskAlt,
+  MdDelete,
 } from "react-icons/md";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Button, Loading, Tabs } from "../components";
+import { Button, ConfirmatioDialog, Loading, Tabs } from "../components";
 import { TaskColor } from "../components/tasks";
 import {
   useChangeSubTaskStatusMutation,
+  useDeleteSubTaskMutation,
+  useDeleteTaskActivityMutation,
   useGetSingleTaskQuery,
   usePostTaskActivityMutation,
 } from "../redux/slices/api/taskApiSlice";
@@ -32,15 +35,11 @@ import { AiOutlinePlayCircle } from "react-icons/ai";
 import { GoAlert } from "react-icons/go";
 import { CgDetailsLess } from "react-icons/cg";
 import { Ri24HoursFill } from "react-icons/ri";
+import { useSelector } from "react-redux";
+import { AddSubTask } from "../components/tasks";
+import { MdEdit } from "react-icons/md";
 
 moment.locale("pt-br");
-
-const assets = [
-  "https://images.pexels.com/photos/2418664/pexels-photo-2418664.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/8797307/pexels-photo-8797307.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/2534523/pexels-photo-2534523.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/804049/pexels-photo-804049.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-];
 
 const ICONS = {
   high: <MdKeyboardDoubleArrowUp />,
@@ -97,8 +96,6 @@ const TYPE_LABELS = {
   started: "Iniciado",
   assigned: "Atribuído",
   bug: "Problema",
-  completed: "Concluído",
-  "in progress": "Em andamento",
 };
 
 /*
@@ -113,8 +110,6 @@ const act_types = [
 
 const act_types = [
   { value: "Started", label: "Iniciado" },
-  { value: "Completed", label: "Concluído" },
-  { value: "In Progress", label: "Em andamento" },
   { value: "Commented", label: "Comentado" },
   { value: "Bug", label: "Problema" },
   { value: "Assigned", label: "Atribuído" },
@@ -159,7 +154,21 @@ const Activities = ({ activity, id, refetch }) => {
     }
   };
 
+  const [deleteActivity, { isLoading: isDeleting }] = useDeleteTaskActivityMutation();
+
+  const handleDeleteActivity = async (activityId) => {
+    try {
+      await deleteActivity({ taskId: id, activityId }).unwrap();
+      toast.success("Atividade removida com sucesso!");
+      refetch();
+    } catch (err) {
+      console.log(err);
+      toast.error(err?.data?.message || err.error);
+    }
+  };
+
   const Card = ({ item }) => {
+    const [openDialog, setOpenDialog] = useState(false);
     return (
       <div className={`flex space-x-4`}>
         <div className='flex flex-col items-center flex-shrink-0'>
@@ -171,15 +180,38 @@ const Activities = ({ activity, id, refetch }) => {
           </div>
         </div>
 
-        <div className='flex flex-col gap-y-1 mb-8'>
-          <p className='font-semibold'>{item?.by?.name}</p>
-          <div className='text-gray-500 space-x-2'>
-            <span className='capitalize'>
-              {TYPE_LABELS[item?.type] || item?.type}
-            </span>
-            <span className='text-sm'>{moment(item?.date).format("DD/MM/YYYY")}</span>
+        <div className='flex flex-col gap-y-1 mb-8 w-full'>
+          <div className='flex justify-between items-center'>
+            <div>
+              <p className='font-semibold'>{item?.by?.name}</p>
+              <div className='text-gray-500 space-x-2'>
+                <span className='capitalize'>
+                  {TYPE_LABELS[item?.type] || item?.type}
+                </span>
+                <span className='text-sm'>{moment(item?.date).format("DD/MM/YYYY")}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setOpenDialog(true)}
+              className='text-red-500 hover:text-red-700 text-sm'
+              disabled={isDeleting}
+            > 
+            
+              {isDeleting ? "Excluindo..." : "Excluir"}
+            </button>
           </div>
-          <div className='text-gray-700'>{item?.activity}</div>
+          <ConfirmatioDialog
+            open={openDialog}
+            setOpen={setOpenDialog}
+            msg="Tem certeza de que deseja excluir esta atividade?"
+            type="delete"
+            onClick={() => {
+              handleDeleteActivity(item._id);
+              setOpenDialog(false);
+            }}
+          />
+
+          <div className='text-gray-700 mt-2'>{item?.activity}</div>
         </div>
       </div>
     );
@@ -192,7 +224,7 @@ const Activities = ({ activity, id, refetch }) => {
         <div className='w-full space-y-0'>
           {activity?.map((item, index) => (
             <Card
-              key={item.id}
+              key={item._id}
               item={item}
               isConnected={index < activity?.length - 1}
             />
@@ -242,11 +274,23 @@ const Activities = ({ activity, id, refetch }) => {
 const TaskDetail = () => {
   const { id } = useParams();
   const { data, isLoading, refetch } = useGetSingleTaskQuery(id);
-  const [subTaskAction, { isLoading: isSubmitting }] =
-    useChangeSubTaskStatusMutation();
+  const [subTaskAction, { isLoading: isSubmitting }] = useChangeSubTaskStatusMutation();
+
+  const [deleteSubTask, { isLoading: isDeletingSubtask }] = useDeleteSubTaskMutation();
+
+  const { user } = useSelector((state) => state.auth);
+  const isAdmin = user?.isAdmin || user?.role === "Administrador";
 
   const [selected, setSelected] = useState(0);
   const task = data?.task || [];
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedSubTask, setSelectedSubTask] = useState(null);
+  const [openAddSubTask, setOpenAddSubTask] = useState(false);
+
+  const handleSubTaskAdded = () => {
+    refetch();
+  };
+
 
   const handleSubmitAction = async (el) => {
     try {
@@ -350,9 +394,7 @@ const TaskDetail = () => {
                 {task?.subTasks?.length > 0 && (
                   <div className='space-y-4 py-6'>
                     <div className='flex items-center gap-5'>
-                      <p className='text-gray-500 font-semibold text-sm'>
-                        SUBTAREFAS
-                      </p>
+                      <p className='text-gray-500 font-semibold text-sm'>SUBTAREFAS</p>
                       <div
                         className={`w-fit h-8 px-2 rounded-full flex items-center justify-center text-white ${
                           percentageCompleted < 50
@@ -365,6 +407,7 @@ const TaskDetail = () => {
                         <p>{percentageCompleted.toFixed(2)}%</p>
                       </div>
                     </div>
+
                     <div className='space-y-8'>
                       {task?.subTasks?.map((el, index) => (
                         <div key={index + el?._id} className='flex gap-3'>
@@ -375,7 +418,8 @@ const TaskDetail = () => {
                           <div className='space-y-1'>
                             <div className='flex gap-2 items-center'>
                               <span className='text-sm text-gray-500'>
-                                Criado em: {el?.date ? moment(el.date).format("DD/MM/YYYY") : "-"}
+                                Data:{" "}
+                                {el?.date ? moment(el.date).format("DD/MM/YYYY") : "-"}
                               </span>
 
                               <span className='px-2 py-0.5 text-center text-sm rounded-full bg-violet-100 text-violet-400 font-semibold lowercase'>
@@ -392,9 +436,10 @@ const TaskDetail = () => {
                                 {el?.isCompleted ? "feito" : "em progresso"}
                               </span>
                             </div>
+
                             <p className='text-gray-700 pb-2'>{el?.title}</p>
 
-                            <>
+                            <div className='flex gap-2'>
                               <button
                                 disabled={isSubmitting}
                                 className={`text-sm outline-none bg-gray-100 text-gray-800 p-1 rounded ${
@@ -413,17 +458,76 @@ const TaskDetail = () => {
                                 {isSubmitting ? (
                                   <FaSpinner className='animate-spin' />
                                 ) : el?.isCompleted ? (
-                                  " Marcar como não feita "
+                                  "Marcar como não feita"
                                 ) : (
-                                  " Marcar como feita "
+                                  "Marcar como feita"
                                 )}
                               </button>
-                            </>
+
+                              {isAdmin && (
+                                <>
+                                  
+                                  <button
+                                    disabled={isSubmitting || isDeletingSubtask}
+                                    className='text-sm outline-none text-black p-1 disabled:cursor-not-allowed'
+                                    onClick={() => {
+                                      setSelectedSubTask(el);   
+                                      setOpenAddSubTask(true);
+                                    }}
+                                  >
+                                    <MdEdit size={16} />
+                                  </button>
+                                  
+                                  <button
+                                    disabled={isSubmitting || isDeletingSubtask}
+                                    className='text-sm outline-none text-red-400 p-1 disabled:cursor-not-allowed'
+                                   onClick={() => {
+                                    setSelectedSubTask(el);
+                                    setOpenDialog(true);     
+                                  }}
+                                  > 
+                                    <MdDelete size={16} />
+                                  </button>
+
+                                  <ConfirmatioDialog
+                                    open={openDialog}
+                                    setOpen={setOpenDialog}
+                                    msg="Tem certeza que deseja excluir essa subtarefa?"
+                                    type="warning"
+                                    onClick={async () => {
+                                      if (!selectedSubTask) return;
+                                      try {
+                                        await deleteSubTask({ taskId: task._id, subTaskId: selectedSubTask._id }).unwrap();
+                                        toast.success("Subtarefa excluída com sucesso");
+                                        refetch();
+                                      } catch (err) {
+                                        toast.error(err?.data?.message || err.error || "Erro ao excluir");
+                                      } finally {
+                                        setOpenDialog(false);
+                                        setSelectedSubTask(null);
+                                      }
+                                    }}
+                                  />
+                               </> 
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
+                )}
+                {selectedSubTask && (
+                  <AddSubTask
+                    open={openAddSubTask}
+                    setOpen={(val) => {
+                      setOpenAddSubTask(false);
+                      setSelectedSubTask(null);
+                    }}
+                    id={task._id}
+                    subTask={selectedSubTask}
+                    onSuccess={refetch}
+                  />
                 )}
               </div>
 
