@@ -3,6 +3,7 @@ import {
   activateUserProfile,
   changeUserPassword,
   deleteUserProfile,
+  forgotPassword,
   getNotificationsList,
   getTeamList,
   getUserTaskStatus,
@@ -11,6 +12,7 @@ import {
   markNotificationRead,
   registerUser,
   updateUserProfile,
+  resetPassword,
 } from "../controllers/userController.js";
 import { isAdminRoute, protectRoute } from "../middleware/authMiddleware.js";
 
@@ -27,6 +29,9 @@ router.get("/get-status", protectRoute, isAdminRoute, getUserTaskStatus);
 router.put("/profile", protectRoute, updateUserProfile);
 router.put("/read-noti", protectRoute, markNotificationRead);
 router.put("/change-password", protectRoute, changeUserPassword);
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:token", resetPassword);
+
 //   FOR ADMIN ONLY - ADMIN ROUTES
 router
   .route("/:id")

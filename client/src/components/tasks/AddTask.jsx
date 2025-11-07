@@ -24,7 +24,7 @@ import Textbox from "../Textbox";
 import UserList from "./UsersSelect";
 
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
-const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
+const PRIORIRY = ["HIGH", "MEDIUM", "LOW"];
 
 const STATUS_PT_BR = {
   "TODO": "Para Fazer",
@@ -35,7 +35,6 @@ const STATUS_PT_BR = {
 const PRIORITY_PT_BR = {
   "HIGH": "Alta",
   "MEDIUM": "Média",
-  "NORMAL": "Normal",
   "LOW": "Baixa",
 };
 
@@ -72,17 +71,14 @@ const uploadFile = async (file) => {
   });
 };
 
-const AddTask = ({ open, setOpen, task }) => {
+const AddTask = ({ open, setOpen, task, refetch }) => {
   const defaultValues = {
-    title: task?.title || "",
-    date: dateFormatter(task?.date || new Date()),
-    team: [],
-    stage: "",
-    priority: "",
-    assets: [],
-    description: "",
-    links: "",
-  };
+  title: "",
+  date: dateFormatter(new Date()),
+  description: "",
+  links: "",
+};
+
   const {
     register,
     handleSubmit,
@@ -120,19 +116,21 @@ const AddTask = ({ open, setOpen, task }) => {
 
 
   useEffect(() => {
-    if (task) {
-      reset({
-        ...defaultValues,
-        title: task.title,
-        date: dateFormatter(task.date),
-      });
-      setTeam(task.team || []);
-      setStage(task.stage?.toUpperCase() || LISTS[0]); 
-      setPriority(task.priority?.toUpperCase() || PRIORIRY[2]);
-    } else {
-        resetForm();
-    }
-  }, [open, task, reset]);
+  if (open && task) {
+    reset({
+      title: task.title || "",
+      date: dateFormatter(task.date || new Date()),
+      description: task.description || "",
+      links: task.links || "",
+    });
+
+    setTeam(task.team || []);
+    setStage(task.stage?.toUpperCase() || LISTS[0]);
+    setPriority(task.priority?.toUpperCase() || PRIORIRY[2]);
+  } else if (open && !task) {
+    resetForm();
+  }
+}, [open, task, reset]);
 
   const handleOnSubmit = async (data) => {
 
@@ -171,6 +169,8 @@ const AddTask = ({ open, setOpen, task }) => {
         : await createTask(newData).unwrap();
 
       toast.success(res.message);
+
+      window.location.reload();
 
       setTimeout(() => {
         setOpen(false);
@@ -239,7 +239,7 @@ const AddTask = ({ open, setOpen, task }) => {
                   placeholder='Data'
                   type='date'
                   name='date'
-                  label='Data da Tarefa'
+                  label='Prazo'
                   className='w-full rounded'
                   register={register("date", {
                     required: "A data é obrigatória!",

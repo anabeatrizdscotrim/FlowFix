@@ -38,6 +38,7 @@ import { Ri24HoursFill } from "react-icons/ri";
 import { useSelector } from "react-redux";
 import { AddSubTask } from "../components/tasks";
 import { MdEdit } from "react-icons/md";
+import { RxUpdate } from "react-icons/rx";
 
 moment.locale("pt-br");
 
@@ -69,7 +70,7 @@ const TASKTYPEICON = {
       <AiOutlinePlayCircle  size={24} />
     </div>
   ),
-  assigned: (
+    assigned: (
     <div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white'>
       <PiUserCircleLight size={24} />
     </div>
@@ -89,13 +90,21 @@ const TASKTYPEICON = {
       <TbProgress size={24} />
     </div>
   ),
+  update: (
+    <div className='w-10 h-10 rounded-full bg-purple-400 flex items-center justify-center text-white'>
+      <RxUpdate size={24} />
+    </div>
+  ),
 };
 
 const TYPE_LABELS = {
-  commented: "Comentário",
+  commented: "Comentado",
   started: "Iniciado",
-  assigned: "Atribuído",
   bug: "Problema",
+  completed: "Finalizado",
+  "in progress": "Em progresso",
+  assigned: "Atribuído",
+  update: "Tarefa Atualizada",
 };
 
 /*
@@ -110,9 +119,10 @@ const act_types = [
 
 const act_types = [
   { value: "Started", label: "Iniciado" },
-  { value: "Commented", label: "Comentado" },
+  { value: "Commented", label: "Adicionar Observação" },
   { value: "Bug", label: "Problema" },
-  { value: "Assigned", label: "Atribuído" },
+  { value: "Completed", label: "Finalizado" },
+  { value: "in progress", label: "Em progresso" },
 ];
 
 
@@ -135,24 +145,32 @@ const Activities = ({ activity, id, refetch }) => {
 
   const [postActivity, { isLoading }] = usePostTaskActivityMutation();
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
+    if ((selected === "Commented" || selected === "Bug") && text.trim() === "") {
+      toast.error("Por favor, escreva algo antes de enviar a observação ou o problema.");
+      return;
+    }
+
     try {
       const data = {
         type: selected?.toLowerCase(),
-        activity: text,
+        activity: (selected === "Commented" || selected === "Bug") ? text : "",
       };
+
       const res = await postActivity({
         data,
         id,
       }).unwrap();
+
       setText("");
-      toast.success(res?.message);
+      toast.success(res?.message || "Atividade registrada com sucesso!");
       refetch();
     } catch (err) {
       console.log(err);
-      toast.error(err?.data?.message || err.error);
+      toast.error(err?.data?.message || err.error || "Erro ao registrar atividade.");
     }
   };
+
 
   const [deleteActivity, { isLoading: isDeleting }] = useDeleteTaskActivityMutation();
 
@@ -248,13 +266,19 @@ const Activities = ({ activity, id, refetch }) => {
               <p>{item.label}</p>
             </div>
           ))}
-          <textarea
-            rows={10}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder='Adicione uma descrição...'
-            className='bg-white w-full mt-10 border border-gray-300 outline-none p-4 rounded-md focus:ring-2 ring-blue-500'
-          ></textarea>
+          {(selected === "Commented" || selected === "Bug") && (
+            <textarea
+              rows={10}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={
+                selected === "Bug"
+                  ? "Descreva o problema encontrado..."
+                  : "Adicione um comentário..."
+              }
+              className='bg-white w-full mt-10 border border-gray-300 outline-none p-4 rounded-md focus:ring-2 ring-blue-500'
+            ></textarea>
+          )}
           {isLoading ? (
             <Loading />
           ) : (
@@ -262,7 +286,7 @@ const Activities = ({ activity, id, refetch }) => {
               type='button'
               label='Enviar'
               onClick={handleSubmit}
-              className='bg-black text-white rounded hover:bg-gray-500'
+              className='bg-black text-white rounded hover:bg-gray-500 mt-5'
             />
           )}
         </div>
@@ -349,7 +373,7 @@ const TaskDetail = () => {
                 </div>
 
                 <p className='text-gray-500'>
-                  Criado em: {task?.date ? moment(task.date).format("DD/MM/YYYY") : "-"}
+                  Prazo da Tarefa: {task?.date ? moment(task.date).format("DD/MM/YYYY") : "-"}
                 </p>
 
                 <div className='flex items-center gap-8 p-4 border-y border-gray-200'>

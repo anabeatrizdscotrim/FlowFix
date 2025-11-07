@@ -24,12 +24,12 @@ const protectRoute = asyncHandler(async (req, res, next) => {
       console.error(error);
       return res
         .status(401)
-        .json({ status: false, message: "Not authorized. Try login again." });
+        .json({ status: false, message: "Não autorizado. Tente novamente." });
     }
   } else {
     return res
       .status(401)
-      .json({ status: false, message: "Not authorized. Try login again." });
+      .json({ status: false, message: "Não autorizado. Tente novamente." });
   }
 });
 
@@ -39,7 +39,7 @@ const isAdminRoute = (req, res, next) => {
   } else {
     return res.status(401).json({
       status: false,
-      message: "Not authorized as admin. Try login as admin.",
+      message: "Não autorizado como administrador. Faça login como administrador.",
     });
   }
 };

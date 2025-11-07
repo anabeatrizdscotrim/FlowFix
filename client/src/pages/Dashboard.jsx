@@ -187,7 +187,7 @@ const TaskTable = ({ tasks }) => {
         <th className='py-2'>Tarefa</th>
         <th className='py-2'>Prioridade</th>
         <th className='py-2'>Time</th>
-        <th className='py-2 hidden md:block'>Criado em</th>
+        <th className='py-2 hidden md:block'>Data</th>
       </tr>
     </thead>
   );

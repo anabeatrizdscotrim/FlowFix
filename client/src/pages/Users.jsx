@@ -101,48 +101,69 @@ const Users = () => {
   );
 
   const TableRow = ({ user }) => (
-    <tr className='border-b border-gray-200 text-gray-600 hover:bg-gray-400/10'>
-      <td className='p-2'>
-        <div className='flex items-center gap-3'>
-          <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-black'>
-            <span className='text-xs md:text-sm text-center'>
-              {getInitials(user.name)}
-            </span>
-          </div>
-          {user.name}
+  <tr className='border-b border-gray-200 text-gray-600 hover:bg-gray-400/10'>
+    <td className='p-2'>
+      <div className='flex items-center gap-3'>
+        <div className='w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-black'>
+          <span className='text-xs md:text-sm text-center'>
+            {getInitials(user.name)}
+          </span>
         </div>
-      </td>
-      <td className='p-2'>{user.title}</td>
-      <td className='p-2'>{user.email}</td>
-      <td className='p-2'>{user.role}</td>
-      <td>
-        <button
-          onClick={() => userStatusClick(user)}
-          className={clsx(
-            "w-fit px-4 py-1 rounded-full",
-            user?.isActive ? "bg-blue-200" : "bg-yellow-100"
-          )}
-        >
-          {user?.isActive ? "Ativo" : "Inativo"}
-        </button>
-      </td>
-      <td className='p-2 flex gap-4 justify-end'>
-        <Button
-          className='text-blue-400 hover:text-blue-200 font-semibold sm:px-0'
-          label='Editar'
-          type='button'
-          onClick={() => editClick(user)}
-        />
+        {user.name}
+      </div>
+    </td>
+    <td className='p-2'>{user.title}</td>
+    <td className='p-2'>{user.email}</td>
+    <td className='p-2'>{user.role}</td>
+    <td>
+      <button
+        onClick={() => {
+          if (user._id === "689354d8f28d0adce2311684") {
+            toast.warning("Este usuário não pode ser desativado.");
+            return;
+          }
+          userStatusClick(user);
+        }}
+        disabled={user._id === "689354d8f28d0adce2311684"}
+        className={clsx(
+          "w-fit px-4 py-1 rounded-full",
+          user?.isActive ? "bg-blue-200" : "bg-yellow-100",
+          user._id === "689354d8f28d0adce2311684" && "opacity-70 cursor-not-allowed"
+        )}
+      >
+        {user?.isActive ? "Ativo" : "Inativo"}
+      </button>
+    </td>
+    <td className='p-2 flex gap-4 justify-end'>
+      <Button
+        className='text-blue-400 hover:text-blue-200 font-semibold sm:px-0'
+        label='Editar'
+        type='button'
+        onClick={() => editClick(user)}
+      />
 
-        <Button
-          className='text-red-400 hover:text-red-200 font-semibold sm:px-0'
-          label='Deletar'
-          type='button'
-          onClick={() => deleteClick(user?._id)}
-        />
-      </td>
-    </tr>
-  );
+      <Button
+        className={clsx(
+          "font-semibold sm:px-0",
+          user._id === "689354d8f28d0adce2311684"
+            ? "text-gray-400 cursor-not-allowed opacity-70"
+            : "text-red-400 hover:text-red-200"
+        )}
+        label='Deletar'
+        type='button'
+        onClick={() => {
+          if (user._id === "689354d8f28d0adce2311684") {
+            toast.warning("Este usuário não pode ser deletado.");
+            return;
+          }
+          deleteClick(user?._id);
+        }}
+        disabled={user._id === "689354d8f28d0adce2311684"}
+      />
+    </td>
+  </tr>
+);
+
 
   return isLoading ? (
     <div className='py-10'>

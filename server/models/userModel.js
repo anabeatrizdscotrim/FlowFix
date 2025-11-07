@@ -11,6 +11,8 @@ const userSchema = new Schema(
     isAdmin: { type: Boolean, default: false },
     tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
     isActive: { type: Boolean, default: true },
+    resetPasswordToken: { type: String }, //alterei
+    resetPasswordExpires: { type: Date }, //alterei
   },
   { timestamps: true }
 );

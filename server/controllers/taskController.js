@@ -13,30 +13,28 @@ const createTask = asyncHandler(async (req, res) => {
       normal: "NORMAL",
       medium: "MÉDIA",
       high: "ALTA",
+    };
+
+    const users = await User.find({ _id: team });
+    const activeUsers = users.filter((user) => user.isActive === true);
+
+    let newLinks = [];
+    if (Array.isArray(links)) {
+      newLinks = links;
+    } else if (typeof links === "string" && links.trim() !== "") {
+      newLinks = links.split(",").map((l) => l.trim());
     }
 
-    //alert users of the task
-    let text = "Uma nova tarefa foi atribuída a você";
-    if (team?.length > 1) {
-      text = text + ` e mais ${team?.length - 1} pessoas.`;
-    }
-
-
-    text +=
-      ` A prioridade da tarefa é ${prioridadeMap[priority?.toLowerCase()] || "NORMAL" }, verifique e aja de acordo. A data da tarefa é ${new Date(date).
-        toLocaleDateString("pt-BR")
-    }. Obrigado!`;
+    const nomes = activeUsers.map((u) => u.name).join(", ");
+    const activityText = `Uma nova tarefa foi atribuída a: ${nomes}. A prioridade é ${
+      prioridadeMap[priority?.toLowerCase()] || "NORMAL"
+    }, com data prevista para ${new Date(date).toLocaleDateString("pt-BR")}. Verifique e aja de acordo.`;
 
     const activity = {
       type: "assigned",
-      activity: text,
+      activity: activityText,
       by: userId,
     };
-    let newLinks = null;
-
-    if (links) {
-      newLinks = links?.split(",");
-    }
 
     const task = await Task.create({
       title,
@@ -46,36 +44,48 @@ const createTask = asyncHandler(async (req, res) => {
       priority: priority.toLowerCase(),
       assets,
       activities: [activity],
-      links: newLinks || [],
+      links: newLinks,
       description,
     });
-    
-    await Notice.create({
-      team,
-      text,
-      task: task._id,
-    });
 
-    const users = await User.find({
-      _id: team,
-    });
+    for (const user of activeUsers) {
+      const outros = activeUsers
+        .filter((u) => u._id.toString() !== user._id.toString())
+        .map((u) => u.name);
 
-    const activeUsers = users.filter(user => user.isActive === true)
+      let text = "";
+      if (outros.length > 0) {
+        text = `Uma nova tarefa foi atribuída a você e para ${outros.join(", ")}.`;
+      } else {
+        text = "Uma nova tarefa foi atribuída a você.";
+      }
 
-    for (let i = 0; i < activeUsers.length; i++) {
-      const user = activeUsers[i];
+      text += ` A prioridade da tarefa é ${
+        prioridadeMap[priority?.toLowerCase()] || "NORMAL"
+      }, com data prevista para ${new Date(date).toLocaleDateString(
+        "pt-BR"
+      )}. Verifique e aja de acordo.`;
+
+      await Notice.create({
+        team: [user._id],
+        text,
+        task: task._id,
+      });
 
       await User.findByIdAndUpdate(user._id, { $push: { tasks: task._id } });
     }
-  
-    res
-      .status(200)
-      .json({ status: true, task, message: "Tarefa criada com sucesso." });
+
+    res.status(200).json({
+      status: true,
+      task,
+      message: "Tarefa criada e notificações enviadas com sucesso.",
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ status: false, message: error.message });
   }
 });
+
 
 const duplicateTask = asyncHandler(async (req, res) => {
   try {
@@ -92,24 +102,24 @@ const duplicateTask = asyncHandler(async (req, res) => {
       normal: "NORMAL",
       medium: "MÉDIA",
       high: "ALTA",
-    }
+    };
 
-    //alert users of the task
-    let text = "Uma nova tarefa foi atribuída a você";
-    if (task.team?.length > 1) {
-      text += ` e mais ${task.team.length - 1} pessoas.`;
-    }
+    const users = await User.find({ _id: task.team });
+    const activeUsers = users.filter((user) => user.isActive === true);
 
-    text +=
-    ` A prioridade da tarefa é ${prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"}, verifique e aja de acordo. A data da tarefa é ${new Date(task.date)
-      .toLocaleDateString("pt-BR")}. Obrigado!`;
-
+    const nomes = activeUsers.map((u) => u.name).join(", ");
+    const activityText = `Uma nova tarefa foi atribuída a: ${nomes}. A prioridade é ${
+      prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"
+    }, com data prevista para ${new Date(task.date).toLocaleDateString(
+      "pt-BR"
+    )}. Verifique e aja de acordo.`;
 
     const activity = {
       type: "assigned",
-      activity: text,
+      activity: activityText,
       by: userId,
     };
+
 
     const newTask = await Task.create({
       title: "Duplicada - " + task.title,
@@ -121,55 +131,130 @@ const duplicateTask = asyncHandler(async (req, res) => {
       stage: task.stage,
       activities: [activity],
       description: task.description,
-      date: task.date
+      date: task.date,
     });
 
-    await Notice.create({
-      team: newTask.team,
-      text,
-      task: newTask._id,
-    });
+    for (const user of activeUsers) {
+      const outros = activeUsers
+        .filter((u) => u._id.toString() !== user._id.toString())
+        .map((u) => u.name);
 
-    res
-      .status(200)
-      .json({ status: true, message: "Tarefa duplicada com sucesso." });
+      let text = "";
+      if (outros.length > 0) {
+        text = `Uma nova tarefa foi atribuída a você e para ${outros.join(", ")}.`;
+      } else {
+        text = "Uma nova tarefa foi atribuída a você.";
+      }
+
+      text += ` A prioridade da tarefa é ${
+        prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"
+      }, com data prevista para ${new Date(task.date).toLocaleDateString(
+        "pt-BR"
+      )}. Verifique e aja de acordo.`;
+
+      await Notice.create({
+        team: [user._id],
+        text,
+        task: newTask._id,
+      });
+
+      await User.findByIdAndUpdate(user._id, { $push: { tasks: newTask._id } });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Tarefa duplicada e notificações enviadas com sucesso.",
+    });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ status: false, message: error.message });
   }
 });
 
 const updateTask = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { title, date, team, stage, priority, assets, links, description } =
-    req.body;
+  const { userId } = req.user;
+  const { title, date, team, stage, priority, assets, links, description } = req.body;
 
   try {
     const task = await Task.findById(id);
-
-    let newLinks = [];
-
-    if (links) {
-      newLinks = links.split(",");
+    if (!task) {
+      return res.status(404).json({ status: false, message: "Tarefa não encontrada." });
     }
 
-    task.title = title;
-    task.date = date;
-    task.priority = priority.toLowerCase();
-    task.assets = assets;
-    task.stage = stage.toLowerCase();
-    task.team = team;
-    task.links = newLinks;
-    task.description = description;
+    let newLinks = [];
+    if (Array.isArray(links)) {
+      newLinks = links;
+    } else if (typeof links === "string" && links.trim() !== "") {
+      newLinks = links.split(",").map((l) => l.trim());
+    }
+
+    task.title = title || task.title;
+    task.date = date || task.date;
+    task.priority = priority?.toLowerCase() || task.priority;
+    task.assets = assets || task.assets;
+    task.stage = stage?.toLowerCase() || task.stage;
+    task.team = team || task.team;
+    task.links = newLinks.length > 0 ? newLinks : task.links;
+    task.description = description || task.description;
+
+    const users = await User.find({ _id: task.team });
+    const activeUsers = users.filter((u) => u.isActive === true);
+
+    const prioridadeMap = {
+      low: "BAIXA",
+      normal: "NORMAL",
+      medium: "MÉDIA",
+      high: "ALTA",
+    };
+
+    const nomes = activeUsers.map((u) => u.name).join(", ");
+    const activityText = `A tarefa foi atualizada e está atribuída a: ${nomes}. A prioridade é ${
+      prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"
+    }, com data prevista para ${new Date(task.date).toLocaleDateString(
+      "pt-BR"
+    )}.`;
+
+    task.activities.push({
+      type: "update",
+      activity: activityText,
+      by: userId,
+    });
 
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "Tarefa atualizada com sucesso." });
+    for (const user of activeUsers) {
+      const outros = activeUsers
+        .filter((u) => u._id.toString() !== user._id.toString())
+        .map((u) => u.name);
+
+      let text = "";
+      if (outros.length > 0) {
+        text = `A tarefa "${task.title}" foi atualizada. Ela está atribuída a você e para ${outros.join(", ")}.`;
+      } else {
+        text = `A tarefa "${task.title}" foi atualizada e está atribuída a você.`;
+      }
+
+      text += ` A prioridade atual é ${
+        prioridadeMap[task.priority?.toLowerCase()] || "NORMAL"
+      }, com data prevista para ${new Date(task.date).toLocaleDateString(
+        "pt-BR"
+      )}.`;
+
+      await Notice.create({
+        team: [user._id],
+        text,
+        task: task._id,
+      });
+    }
+
+    res.status(200).json({ status: true, message: "Tarefa atualizada e notificações enviadas com sucesso." });
   } catch (error) {
+    console.error(error);
     return res.status(400).json({ status: false, message: error.message });
   }
 });
+
 
 const updateTaskStage = asyncHandler(async (req, res) => {
   try {
@@ -536,18 +621,18 @@ const dashboardStatistics = asyncHandler(async (req, res) => {
 });
 
 export {
-  createSubTask,
-  createTask,
-  dashboardStatistics,
-  deleteRestoreTask,
-  duplicateTask,
-  getTask,
-  getTasks,
-  postTaskActivity,
-  trashTask,
-  updateSubTaskStage,
-  updateTask,
-  updateTaskStage,
+  createSubTask, //
+  createTask, //
+  dashboardStatistics, //
+  deleteRestoreTask, //
+  duplicateTask, //
+  getTask, //
+  getTasks, // 
+  postTaskActivity, //
+  trashTask, //
+  updateSubTaskStage, //
+  updateTask, //
+  updateTaskStage, //
   deleteTaskActivity,
   deleteSubTask,
   updateSubTask,

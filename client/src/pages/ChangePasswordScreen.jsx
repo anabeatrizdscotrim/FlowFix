@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useForceChangePasswordMutation } from '../redux/slices/api/authApiSlice';
-import { setCredentials } from '../redux/slices/authSlice'; // Para atualizar o estado local
+import { setCredentials } from '../redux/slices/authSlice';
 
 const ChangePasswordScreen = () => {
     const { user, mustChangePassword } = useSelector(state => state.auth);

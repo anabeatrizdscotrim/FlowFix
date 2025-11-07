@@ -6,6 +6,7 @@ import {
   MdKeyboardArrowUp,
   MdKeyboardDoubleArrowUp,
 } from "react-icons/md";
+import { FaCalendarAlt, FaClock } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -24,17 +25,11 @@ const ICONS = {
   low: <MdKeyboardArrowDown />,
 };
 
-const STATUS_PT_BR = {
-  "TODO": "Para Fazer",
-  "IN PROGRESS": "Em Progresso",
-  "COMPLETED": "Finalizado",
-};
-
 const PRIORITY_PT_BR = {
-  "HIGH": "Alta",
-  "MEDIUM": "Média",
-  "NORMAL": "Normal",
-  "LOW": "Baixa",
+  HIGH: "Alta",
+  MEDIUM: "Média",
+  NORMAL: "Normal",
+  LOW: "Baixa",
 };
 
 const TaskCard = ({ task }) => {
@@ -54,46 +49,57 @@ const TaskCard = ({ task }) => {
 
   return (
     <>
-      <div className='w-full h-fit bg-white dark:bg-[#1f1f1f] shadow-md p-4 rounded'>
-        <div className='w-full flex justify-between'>
+      <div className="w-full h-fit bg-white dark:bg-[#1f1f1f] shadow-md p-4 rounded">
+        <div className="w-full flex justify-between">
           <div
             className={clsx(
               "flex flex-1 gap-1 items-center text-sm font-medium",
               PRIOTITYSTYELS[task?.priority]
             )}
           >
-            <span className='text-lg'>{ICONS[task?.priority]}</span>
-            <span className='uppercase'>
-              {PRIORITY_PT_BR[task?.priority?.toUpperCase()] || task?.priority} {}
-              {" "} {}
+            <span className="text-lg">{ICONS[task?.priority]}</span>
+            <span className="uppercase">
+              {PRIORITY_PT_BR[task?.priority?.toUpperCase()] ||
+                task?.priority}{" "}
               Prioridade
             </span>
           </div>
           <TaskDialog task={task} />
         </div>
+
         <>
           <Link to={`/task/${task._id}`}>
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2 mt-1">
               <TaskColor className={TASK_TYPE[task.stage]} />
-              <h4 className='text- line-clamp-1 text-black dark:text-white'>
+              <h4 className="text-base font-semibold line-clamp-1 text-black dark:text-white">
                 {task?.title}
               </h4>
             </div>
           </Link>
-          <span className='text-sm text-gray-600 dark:text-gray-400'>
-            {formatDate(new Date(task?.date))}
-          </span>
+
+          <div className="flex items-center gap-4 mt-2 text-[13px] text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-1 text-[14px] ">
+              <span>Criada em: {formatDate(new Date(task?.createdAt))}</span>
+            </div>
+
+            {task?.date && (
+              <div className="flex items-center gap-1 text-[14px]">
+                <span>Prazo: {formatDate(new Date(task?.date))}</span>
+              </div>
+            )}
+          </div>
         </>
 
-        <div className='w-full border-t border-gray-200 dark:border-gray-700 my-2' />
-        <div className='flex items-center justify-between mb-2'>
+        <div className="w-full border-t border-gray-200 dark:border-gray-700 my-2" />
+
+        <div className="flex items-center justify-between mb-2">
           <TaskAssets
             activities={task?.activities?.length}
             subTasks={task?.subTasks}
             assets={task?.assets?.length}
           />
 
-          <div className='flex flex-row-reverse'>
+          <div className="flex flex-row-reverse">
             {task?.team?.length > 0 &&
               task?.team?.map((m, index) => (
                 <div
@@ -109,43 +115,46 @@ const TaskCard = ({ task }) => {
           </div>
         </div>
 
-        {/* subtasks */}
+        {/* SUBTAREFAS */}
         {task?.subTasks?.length > 0 ? (
-          <div className='py-4 border-t border-gray-200 dark:border-gray-700'>
-            <h5 className='text-base line-clamp-1 text-black dark:text-gray-400'>
+          <div className="py-4 border-t border-gray-200 dark:border-gray-700">
+            <h5 className="text-base line-clamp-1 text-black dark:text-gray-400">
               {task?.subTasks[0].title}
             </h5>
 
-            <div className='p-4 space-x-8'>
-              <span className='text-sm text-gray-600 dark:text-gray-500'>
+            <div className="p-4 space-x-8">
+              <span className="text-sm text-gray-600 dark:text-gray-500">
                 {formatDate(new Date(task?.subTasks[0]?.date))}
               </span>
-              <span className='bg-blue-600/10 px-3 py-1 rounded-full text-blue-400 font-medium'>
+              <span className="bg-blue-600/10 px-3 py-1 rounded-full text-blue-400 font-medium">
                 {task?.subTasks[0]?.tag}
               </span>
             </div>
           </div>
         ) : (
-          <div>
-            <div className='py-4 border-t border-gray-200 dark:border-gray-700'>
-              <span className='text-gray-500'>Sem subtarefas</span>
-            </div>
+          <div className="py-4 border-t border-gray-200 dark:border-gray-700">
+            <span className="text-gray-500">Sem subtarefas</span>
           </div>
         )}
 
-        <div className='w-full pb-2'>
+        <div className="w-full pb-2">
           <button
-            disabled={user.isAdmin ? false : true}
+            disabled={!user.isAdmin}
             onClick={() => setOpen(true)}
-            className='w-full flex gap-4 items-center text-sm text-gray-500 font-semibold disabled:cursor-not-allowed disabled:text-gray-300'
+            className="w-full flex gap-4 items-center text-sm text-gray-500 font-semibold disabled:cursor-not-allowed disabled:text-gray-300"
           >
-            <IoMdAdd className='text-lg' />
+            <IoMdAdd className="text-lg" />
             <span>ADICIONAR SUBTAREFA</span>
           </button>
         </div>
       </div>
 
-      <AddSubTask open={open} setOpen={setOpen} id={task._id} onSuccess={refreshTask} />
+      <AddSubTask
+        open={open}
+        setOpen={setOpen}
+        id={task._id}
+        onSuccess={refreshTask}
+      />
     </>
   );
 };

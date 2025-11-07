@@ -2,7 +2,10 @@ import asyncHandler from "express-async-handler";
 import Notice from "../models/notis.js";
 import User from "../models/userModel.js";
 import createJWT from "../utils/index.js";
-import Task from "../models/taskModel.js"
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+import sendEmail from "../utils/sendEmail.js";
+import bcrypt from "bcryptjs";
 
 // POST request - login user
 const loginUser = asyncHandler(async (req, res) => {
@@ -51,10 +54,10 @@ const loginUser = asyncHandler(async (req, res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, isAdmin, role, title } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email) {
     return res.status(400).json({
       status: false,
-      message: "Nome, email e senha são obrigatórios.",
+      message: "Nome e email são obrigatórios.",
     });
   }
 
@@ -66,13 +69,6 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   }
 
-  if (password.length < 6) {
-    return res.status(400).json({
-      status: false,
-      message: "A senha deve ter pelo menos 6 caracteres.",
-    });
-  }
-
   const userExists = await User.findOne({ email });
   if (userExists) {
     return res.status(400).json({
@@ -81,10 +77,12 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   }
 
+  const randomPassword = crypto.randomBytes(4).toString("hex"); 
+
   const user = await User.create({
     name,
     email,
-    password,
+    password: randomPassword,
     isAdmin,
     role,
     title,
@@ -95,15 +93,40 @@ const registerUser = asyncHandler(async (req, res) => {
 
     user.password = undefined;
 
+      const message = `
+      Olá ${name},\n\n
+      Sua conta foi criada com sucesso!\n
+      E-mail: ${email}\n
+      Senha temporária: ${randomPassword}\n\n
+      Recomendamos que você altere sua senha após o primeiro login.\n\n
+      Atenciosamente,\n
+      Equipe FlowFix
+    `;
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Acesso ao sistema FlowFix",
+        text: message,
+      });
+    } catch (error) {
+      console.error("Erro ao enviar e-mail:", error);
+      return res.status(500).json({
+        status: true,
+        message: "Usuário criado, mas falha ao enviar e-mail com a senha.",
+        user,
+      });
+    }
+
     return res.status(201).json({
       status: true,
-      message: "Usuário registrado com sucesso.",
+      message: "Usuário registrado com sucesso. A senha foi enviada por e-mail.",
       user,
     });
   } else {
     return res.status(400).json({
       status: false,
-      message: "Dados de usuário inválidos.",
+      message: "Erro ao criar usuário.",
     });
   }
 });
@@ -213,7 +236,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
-    // user.email = req.body.email || user.email;
+    user.email = req.body.email || user.email;
     user.title = req.body.title || user.title;
     user.role = req.body.role || user.role;
     user.isAdmin = req.body.isAdmin ?? user.isAdmin;
@@ -237,23 +260,34 @@ const activateUserProfile = asyncHandler(async (req, res) => {
 
   const user = await User.findById(id);
 
-  if (user) {
-    user.isActive = req.body.isActive;
-
-    await user.save();
-
-    user.password = undefined;
-
-    res.status(201).json({
-      status: true,
-      message: `A conta do usuário foi ${
-      user?.isActive ? "ativada" : "desativada"
-      }`,
-    });
-  } else {
-    res.status(404).json({ status: false, message: "Usuário não encontrado." });
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: false, message: "Usuário não encontrado." });
   }
+
+  const protectedUserId = "689354d8f28d0adce2311684";
+
+  if (id === protectedUserId && req.body.isActive === false) {
+    return res.status(403).json({
+      status: false,
+      message: "Este usuário não pode ser desativado.",
+    });
+  }
+
+  user.isActive = req.body.isActive;
+  await user.save();
+
+  user.password = undefined;
+
+  res.status(201).json({
+    status: true,
+    message: `A conta do usuário foi ${
+      user?.isActive ? "ativada" : "desativada"
+    }.`,
+  });
 });
+
 
 const changeUserPassword = asyncHandler(async (req, res) => {
   const { userId } = req.user;
@@ -304,34 +338,100 @@ const changeUserPassword = asyncHandler(async (req, res) => {
 const deleteUserProfile = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  await User.findByIdAndDelete(id);
+  const BASE_USER_ID = "689354d8f28d0adce2311684";
+
+  if (id === BASE_USER_ID) {
+    return res.status(403).json({
+      status: false,
+      message: "O usuário base do sistema não pode ser excluído.",
+    });
+  }
+
+  const user = await User.findById(id);
+
+  if (!user) {
+    return res.status(404).json({ status: false, message: "Usuário não encontrado." });
+  }
+
+  await user.deleteOne();
 
   res.status(200).json({ status: true, message: "Usuário removido com sucesso." });
 });
 
 
-/*
-const checkDisponibility = asyncHandler(async(req, res) => {
-  const {id} = req.params;
+// forgot password?
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
 
-  const user = await User.findById(id);
+  const user = await User.findOne({ email });
 
-  const tasks = await Task.find({userId: id})
-
-  if (tasks.every(t => t.status === "completed")){
-    user.available = true
-    await user.save()
-    res.status(200).json({status: true, message: "Usuário disponível"})
-  } else {
-    user.available = false
-    await user.save()
-    return res.status(400).json({
-      status: false,
-      message: "Usuário indisponível",
-    });
+  if (!user) {
+    return res.status(404).json({ status: false, message: "Usuário não encontrado." });
   }
-})*/
 
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+
+  await user.save();
+
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  })
+
+  const mailOptions = {
+    from: `"FlowFix" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: "Redefinição de senha",
+    html: `
+      <p>Olá ${user.name},</p>
+      <p>Clique no link abaixo para redefinir sua senha (válido por 1 hora):</p>
+      <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+
+  res.status(200).json({ status: true, message: "E-mail de redefinição enviado!" });
+});
+
+// resetar a senha
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Token inválido ou expirado." });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Senha deve ter pelo menos 6 caracteres" });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    res.json({ message: "Senha redefinida com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao redefinir senha:", error);
+    res.status(500).json({ message: "Erro interno no servidor." });
+  }
+};
 
 export {
   activateUserProfile,
@@ -345,7 +445,9 @@ export {
   markNotificationRead,
   registerUser,
   updateUserProfile,
-  //checkDisponibility,
+  forgotPassword,
+  resetPassword,
+
 };
 
 

@@ -69,7 +69,7 @@ const Login = () => {
             <div className='flex flex-col gap-y-5'>
              <div className="flex flex-col gap-y-5 relative">
             <Textbox
-              placeholder="email@example.com"
+              placeholder="email@exemplo.com"
               type="email"
               name="email"
               label="E-mail"
@@ -110,7 +110,10 @@ const Login = () => {
             </div>
           </div>
 
-          <span className="text-sm text-gray-600 hover:text-blue-400 hover:underline cursor-pointer">
+          <span
+            onClick={() => navigate("/forgot-password")}
+            className="text-sm text-gray-600 hover:text-blue-400 hover:underline cursor-pointer"
+          >
             Esqueceu a senha?
           </span>
             </div>

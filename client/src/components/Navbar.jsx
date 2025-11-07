@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { MdOutlineSearch } from "react-icons/md";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setOpenSidebar } from "../redux/slices/authSlice";
 import NotificationPanel from "./NotificationPanel";
 import UserAvatar from "./UserAvatar";
@@ -12,9 +12,41 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
-  );
+
+  const [displayTerm, setDisplayTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");  
+
+  const traducoes = {
+    alta: "high",
+    média: "medium",
+    media: "medium",
+    baixa: "low",
+    concluída: "completed",
+    concluida: "completed",
+    pendente: "pending",
+    urgente: "urgent",
+  };
+
+  useEffect(() => {
+    const param = searchParams.get("search");
+    if (param) {
+      const inverso = Object.entries(traducoes).find(([pt, en]) => en === param);
+      if (inverso) {
+        setDisplayTerm(inverso[0]); 
+      } else {
+        setDisplayTerm(param);
+      }
+      setSearchTerm(param);
+    }
+  }, []);
+
+  const handleSearchChange = (e) => {
+    const input = e.target.value.toLowerCase();
+    setDisplayTerm(input);
+
+    const translated = traducoes[input] || input;
+    setSearchTerm(translated);
+  };
 
   useEffect(() => {
     updateURL({ searchTerm, navigate, location });
@@ -28,7 +60,7 @@ const Navbar = () => {
   return (
     <div className='flex justify-between items-center bg-white dark:bg-[#1f1f1f] px-4 py-3 2xl:py-4 sticky z-10 top-0'>
       <div className='flex gap-4'>
-        <div className=''>
+        <div>
           <button
             onClick={() => dispatch(setOpenSidebar(true))}
             className='text-2xl text-gray-500 block md:hidden'
@@ -45,8 +77,8 @@ const Navbar = () => {
             <MdOutlineSearch className='text-gray-500 text-xl' />
 
             <input
-              onChange={(e) => setSearchTerm(e.target.value)}
-              value={searchTerm}
+              onChange={handleSearchChange}
+              value={displayTerm}
               type='text'
               placeholder='Procurar...'
               className='flex-1 outline-none bg-transparent placeholder:text-gray-500 text-gray-800'
@@ -57,7 +89,6 @@ const Navbar = () => {
 
       <div className='flex gap-2 items-center'>
         <NotificationPanel />
-
         <UserAvatar />
       </div>
     </div>

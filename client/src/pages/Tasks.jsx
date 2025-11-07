@@ -88,7 +88,7 @@ const Tasks = () => {
           )}
         </Tabs>
       </div>
-      <AddTask open={open} setOpen={setOpen} />
+      <AddTask open={open} setOpen={setOpen} refetch={refetch} />
     </div>
   );
 };
